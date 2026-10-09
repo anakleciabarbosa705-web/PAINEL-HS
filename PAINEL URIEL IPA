@@ -1,0 +1,1167 @@
+--[[
+    PAINEL URIEL IPA 1.132.1
+    ESP 100% + FPS + Todas opções
+--]]
+
+--=========================================================
+-- SERVIÇOS
+--=========================================================
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local Camera = workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+--=========================================================
+-- CONFIG
+--=========================================================
+local Config = {
+    -- AIMBOT
+    Aimbot = false,
+    DisparoAuto = false,
+    MostrarFOV = false,
+    Distancia = 600,
+    Prioridade = "Mira",
+    Osso = "Cabeca",
+    Gatilho = "Atirando",
+    IgnorarInimigos = "Nenhum",
+    FOV = 360,
+    Velocidade = 1.0,
+
+    -- VISUAIS
+    AtivarESP = false,
+    Linhas = false,
+    Caixas = false,
+    Esqueleto = false,
+    Vida = false,
+    Nomes = false,
+    Distancia2 = false,
+    AlcanceESP = 500,
+    CorESP = Color3.fromRGB(255, 100, 150),
+    Espessura = 1,
+
+    -- DIVERSOS
+    SemRecuo = false,
+    RecargaRapida = false,
+    ParaquedasRapido = false,
+    MovimentoLivre = false,
+    Forcar120FPS = false,
+    GirarJogador = false,
+    VelSpin = 1709,
+}
+
+--=========================================================
+-- CORES (laranja)
+--=========================================================
+local COR_FUNDO   = Color3.fromRGB(15, 13, 12)
+local COR_FUNDO_2 = Color3.fromRGB(30, 26, 22)
+local COR_TOPO    = Color3.fromRGB(230, 100, 20)
+local COR_TEXTO   = Color3.fromRGB(240, 235, 225)
+local COR_TEXTO_2 = Color3.fromRGB(140, 130, 120)
+local COR_ON      = Color3.fromRGB(255, 100, 20)
+
+--=========================================================
+-- SCREEN GUI
+--=========================================================
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "UrielIPA"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.DisplayOrder = 999
+pcall(function() ScreenGui.Parent = CoreGui end)
+if not ScreenGui.Parent then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+--=========================================================
+-- BOTÃO Δ
+--=========================================================
+local BotaoDelta = Instance.new("TextButton")
+BotaoDelta.Size = UDim2.new(0, 50, 0, 50)
+BotaoDelta.Position = UDim2.new(0, 15, 0.5, -25)
+BotaoDelta.BackgroundColor3 = COR_FUNDO
+BotaoDelta.Text = "∆"
+BotaoDelta.TextColor3 = COR_TOPO
+BotaoDelta.Font = Enum.Font.GothamBold
+BotaoDelta.TextSize = 26
+BotaoDelta.AutoButtonColor = false
+BotaoDelta.Active = true
+BotaoDelta.ZIndex = 100
+BotaoDelta.Parent = ScreenGui
+
+Instance.new("UICorner", BotaoDelta).CornerRadius = UDim.new(1, 0)
+local deltaStroke = Instance.new("UIStroke", BotaoDelta)
+deltaStroke.Color = COR_TOPO
+deltaStroke.Thickness = 2
+
+--=========================================================
+-- PAINEL
+--=========================================================
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 420, 0, 320)
+Main.Position = UDim2.new(0.5, -210, 0.5, -160)
+Main.BackgroundColor3 = COR_FUNDO
+Main.BorderSizePixel = 0
+Main.Visible = false
+Main.Active = true
+Main.ClipsDescendants = true
+Main.ZIndex = 10
+Main.Parent = ScreenGui
+
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 10)
+local ms = Instance.new("UIStroke", Main)
+ms.Color = COR_TOPO
+ms.Thickness = 1.5
+
+-- TOPBAR
+local TopBar = Instance.new("Frame")
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+TopBar.BackgroundColor3 = COR_FUNDO
+TopBar.BorderSizePixel = 0
+TopBar.Active = true
+TopBar.ZIndex = 20
+TopBar.Parent = Main
+
+local IconeTop = Instance.new("TextLabel")
+IconeTop.Size = UDim2.new(0, 30, 1, 0)
+IconeTop.Position = UDim2.new(0, 12, 0, 0)
+IconeTop.BackgroundTransparency = 1
+IconeTop.Text = "🎯"
+IconeTop.Font = Enum.Font.GothamBold
+IconeTop.TextSize = 20
+IconeTop.ZIndex = 21
+IconeTop.Parent = TopBar
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -120, 1, 0)
+Title.Position = UDim2.new(0, 48, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "AIMBOT"
+Title.TextColor3 = COR_TOPO
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 22
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 21
+Title.Parent = TopBar
+
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Size = UDim2.new(0, 26, 0, 26)
+MinimizeBtn.Position = UDim2.new(1, -70, 0, 7)
+MinimizeBtn.BackgroundTransparency = 1
+MinimizeBtn.Text = "🌙"
+MinimizeBtn.TextSize = 16
+MinimizeBtn.AutoButtonColor = false
+MinimizeBtn.Active = true
+MinimizeBtn.ZIndex = 21
+MinimizeBtn.Parent = TopBar
+MinimizeBtn.MouseButton1Click:Connect(function()
+    Main.Visible = false
+    BotaoDelta.Visible = true
+end)
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
+CloseBtn.Position = UDim2.new(1, -36, 0, 7)
+CloseBtn.BackgroundTransparency = 1
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = COR_TOPO
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 18
+CloseBtn.AutoButtonColor = false
+CloseBtn.Active = true
+CloseBtn.ZIndex = 21
+CloseBtn.Parent = TopBar
+CloseBtn.MouseButton1Click:Connect(function()
+    Main.Visible = false
+    BotaoDelta.Visible = true
+end)
+
+--=========================================================
+-- ABAS LATERAIS
+--=========================================================
+local AbasFrame = Instance.new("Frame")
+AbasFrame.Size = UDim2.new(0, 90, 1, -44)
+AbasFrame.Position = UDim2.new(0, 0, 0, 44)
+AbasFrame.BackgroundColor3 = COR_FUNDO
+AbasFrame.BorderSizePixel = 0
+AbasFrame.Active = true
+AbasFrame.ZIndex = 25
+AbasFrame.Parent = Main
+
+local AbasBtns = {}
+local Paginas = {}
+
+local abasInfo = {
+    {nome = "Aimbot",   label = "Aimbot",   icone = "🎯"},
+    {nome = "Visuais",  label = "Visuais",  icone = "👁"},
+    {nome = "Diversos", label = "Diversos", icone = "📦"},
+    {nome = "Ajustes",  label = "Ajustes",  icone = "⚙"},
+}
+
+local function mostrarAba(nome)
+    for n, page in pairs(Paginas) do
+        page.Visible = (n == nome)
+    end
+    for n, btn in pairs(AbasBtns) do
+        if n == nome then
+            btn.TextColor3 = COR_TOPO
+        else
+            btn.TextColor3 = COR_TEXTO_2
+        end
+    end
+    for _, info in ipairs(abasInfo) do
+        if info.nome == nome then
+            Title.Text = string.upper(info.label)
+            IconeTop.Text = info.icone
+            break
+        end
+    end
+end
+
+local ContainerPages = Instance.new("Frame")
+ContainerPages.Size = UDim2.new(1, -96, 1, -44)
+ContainerPages.Position = UDim2.new(0, 96, 0, 44)
+ContainerPages.BackgroundColor3 = COR_FUNDO
+ContainerPages.BorderSizePixel = 0
+ContainerPages.Active = true
+ContainerPages.ClipsDescendants = true
+ContainerPages.ZIndex = 26
+ContainerPages.Parent = Main
+
+local function criarPagina(nome)
+    local page = Instance.new("ScrollingFrame")
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.BorderSizePixel = 0
+    page.Visible = false
+    page.Active = true
+    page.ZIndex = 27
+    page.ScrollBarThickness = 3
+    page.ScrollBarImageColor3 = COR_TOPO
+    page.CanvasSize = UDim2.new(0, 0, 0, 0)
+    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    page.Parent = ContainerPages
+    Paginas[nome] = page
+    return page
+end
+
+for i, info in ipairs(abasInfo) do
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 70)
+    btn.Position = UDim2.new(0, 0, 0, (i-1) * 75)
+    btn.BackgroundColor3 = COR_FUNDO
+    btn.Text = info.icone .. "\n" .. info.label
+    btn.TextColor3 = COR_TEXTO_2
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 11
+    btn.TextWrapped = true
+    btn.AutoButtonColor = false
+    btn.Active = true
+    btn.ZIndex = 26
+    btn.Parent = AbasFrame
+
+    AbasBtns[info.nome] = btn
+    btn.MouseButton1Click:Connect(function()
+        mostrarAba(info.nome)
+    end)
+end
+
+local PageAimbot   = criarPagina("Aimbot")
+local PageVisuais  = criarPagina("Visuais")
+local PageDiversos = criarPagina("Diversos")
+local PageAjustes  = criarPagina("Ajustes")
+
+--=========================================================
+-- COMPONENTES
+--=========================================================
+
+-- CHECKBOX laranja com ✓ branco
+local function criarCheckbox(parent, texto, padrao, callback, y)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -12, 0, 40)
+    frame.Position = UDim2.new(0, 6, 0, y or 0)
+    frame.BackgroundColor3 = COR_FUNDO_2
+    frame.BorderSizePixel = 0
+    frame.Active = true
+    frame.ZIndex = 28
+    frame.Parent = parent
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -60, 1, 0)
+    label.Position = UDim2.new(0, 14, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = texto
+    label.TextColor3 = COR_TEXTO
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 29
+    label.Parent = frame
+
+    local box = Instance.new("TextButton")
+    box.Size = UDim2.new(0, 28, 0, 28)
+    box.Position = UDim2.new(1, -38, 0.5, -14)
+    box.BackgroundColor3 = Color3.fromRGB(35, 30, 25)
+    box.Text = ""
+    box.AutoButtonColor = false
+    box.Active = true
+    box.ZIndex = 29
+    box.Parent = frame
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
+
+    local boxStroke = Instance.new("UIStroke", box)
+    boxStroke.Color = Color3.fromRGB(60, 55, 50)
+    boxStroke.Thickness = 2
+
+    local check = Instance.new("TextLabel")
+    check.Size = UDim2.new(1, 0, 1, 0)
+    check.BackgroundTransparency = 1
+    check.Text = "✓"
+    check.TextColor3 = Color3.fromRGB(255, 255, 255)
+    check.Font = Enum.Font.GothamBold
+    check.TextSize = 18
+    check.Visible = padrao or false
+    check.ZIndex = 30
+    check.Parent = box
+
+    local estado = padrao or false
+    if estado then
+        box.BackgroundColor3 = COR_ON
+        boxStroke.Color = COR_ON
+    end
+
+    box.MouseButton1Click:Connect(function()
+        estado = not estado
+        check.Visible = estado
+        box.BackgroundColor3 = estado and COR_ON or Color3.fromRGB(35, 30, 25)
+        boxStroke.Color = estado and COR_ON or Color3.fromRGB(60, 55, 50)
+        if callback then callback(estado) end
+    end)
+    return frame
+end
+
+-- SLIDER
+local function criarSlider(parent, texto, min, max, padrao, sufixo, callback, y, decimal)
+    decimal = decimal or 0
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -12, 0, 58)
+    frame.Position = UDim2.new(0, 6, 0, y or 0)
+    frame.BackgroundColor3 = COR_FUNDO_2
+    frame.BorderSizePixel = 0
+    frame.Active = true
+    frame.ZIndex = 28
+    frame.Parent = parent
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 8)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -70, 0, 22)
+    label.Position = UDim2.new(0, 14, 0, 6)
+    label.BackgroundTransparency = 1
+    label.Text = texto
+    label.TextColor3 = COR_TEXTO
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 29
+    label.Parent = frame
+
+    local valorLabel = Instance.new("TextLabel")
+    valorLabel.Size = UDim2.new(0, 70, 0, 22)
+    valorLabel.Position = UDim2.new(1, -76, 0, 6)
+    valorLabel.BackgroundTransparency = 1
+    valorLabel.Text = (decimal > 0 and string.format("%.2f", padrao) or tostring(padrao)) .. (sufixo or "")
+    valorLabel.TextColor3 = COR_TOPO
+    valorLabel.Font = Enum.Font.GothamBold
+    valorLabel.TextSize = 14
+    valorLabel.TextXAlignment = Enum.TextXAlignment.Right
+    valorLabel.ZIndex = 29
+    valorLabel.Parent = frame
+
+    local trilha = Instance.new("Frame")
+    trilha.Size = UDim2.new(1, -28, 0, 6)
+    trilha.Position = UDim2.new(0, 14, 0, 38)
+    trilha.BackgroundColor3 = Color3.fromRGB(50, 44, 38)
+    trilha.BorderSizePixel = 0
+    trilha.ZIndex = 29
+    trilha.Parent = frame
+    Instance.new("UICorner", trilha).CornerRadius = UDim.new(1, 0)
+
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((padrao - min) / (max - min), 0, 1, 0)
+    fill.BackgroundColor3 = COR_TOPO
+    fill.BorderSizePixel = 0
+    fill.ZIndex = 29
+    fill.Parent = trilha
+    Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+
+    local bolinha = Instance.new("Frame")
+    bolinha.Size = UDim2.new(0, 20, 0, 20)
+    bolinha.Position = UDim2.new((padrao - min) / (max - min), -10, 0.5, -10)
+    bolinha.BackgroundColor3 = COR_TOPO
+    bolinha.BorderSizePixel = 0
+    bolinha.ZIndex = 30
+    bolinha.Parent = trilha
+    Instance.new("UICorner", bolinha).CornerRadius = UDim.new(1, 0)
+    local bolinhaStroke = Instance.new("UIStroke", bolinha)
+    bolinhaStroke.Color = Color3.fromRGB(255, 255, 255)
+    bolinhaStroke.Thickness = 2
+
+    local hitbox = Instance.new("TextButton")
+    hitbox.Size = UDim2.new(1, 0, 0, 30)
+    hitbox.Position = UDim2.new(0, 0, 0, -12)
+    hitbox.BackgroundTransparency = 1
+    hitbox.Text = ""
+    hitbox.Active = true
+    hitbox.ZIndex = 30
+    hitbox.Parent = trilha
+
+    local arrastando = false
+    local function atualizar(posX)
+        local relX = math.clamp((posX - trilha.AbsolutePosition.X) / trilha.AbsoluteSize.X, 0, 1)
+        local valor = min + (max - min) * relX
+        if decimal > 0 then
+            valor = math.floor(valor * (10^decimal)) / (10^decimal)
+            valorLabel.Text = string.format("%.2f", valor) .. (sufixo or "")
+        else
+            valor = math.floor(valor)
+            valorLabel.Text = tostring(valor) .. (sufixo or "")
+        end
+        fill.Size = UDim2.new(relX, 0, 1, 0)
+        bolinha.Position = UDim2.new(relX, -10, 0.5, -10)
+        if callback then callback(valor) end
+    end
+
+    hitbox.MouseButton1Down:Connect(function(x) arrastando = true; atualizar(x) end)
+    hitbox.MouseMoved:Connect(function(x) if arrastando then atualizar(x) end end)
+    UIS.InputEnded:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+            arrastando = false
+        end
+    end)
+    UIS.InputChanged:Connect(function(i)
+        if arrastando and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
+            atualizar(i.Position.X)
+        end
+    end)
+    return frame
+end
+
+-- DROPDOWN
+local function criarDropdown(parent, texto, opcoes, padrao, callback, y)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -12, 0, 60)
+    frame.Position = UDim2.new(0, 6, 0, y or 0)
+    frame.BackgroundTransparency = 1
+    frame.Active = true
+    frame.ZIndex = 28
+    frame.Parent = parent
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, 0, 0, 18)
+    label.BackgroundTransparency = 1
+    label.Text = texto
+    label.TextColor3 = COR_TEXTO
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 29
+    label.Parent = frame
+
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 34)
+    btn.Position = UDim2.new(0, 0, 0, 20)
+    btn.BackgroundColor3 = COR_FUNDO_2
+    btn.Text = "  " .. padrao
+    btn.TextColor3 = COR_TEXTO
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 13
+    btn.TextXAlignment = Enum.TextXAlignment.Left
+    btn.AutoButtonColor = false
+    btn.Active = true
+    btn.ZIndex = 30
+    btn.Parent = frame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+
+    local seta = Instance.new("TextLabel")
+    seta.Size = UDim2.new(0, 28, 1, 0)
+    seta.Position = UDim2.new(1, -30, 0, 0)
+    seta.BackgroundTransparency = 1
+    seta.Text = "v"
+    seta.TextColor3 = COR_TOPO
+    seta.Font = Enum.Font.GothamBold
+    seta.TextSize = 14
+    seta.ZIndex = 31
+    seta.Parent = btn
+
+    local lista = Instance.new("Frame")
+    lista.Size = UDim2.new(1, 0, 0, #opcoes * 30)
+    lista.Position = UDim2.new(0, 0, 1, 2)
+    lista.BackgroundColor3 = COR_FUNDO
+    lista.BorderSizePixel = 0
+    lista.Visible = false
+    lista.ZIndex = 50
+    lista.Active = true
+    lista.Parent = frame
+    Instance.new("UICorner", lista).CornerRadius = UDim.new(0, 8)
+    local listaLayout = Instance.new("UIListLayout", lista)
+    listaLayout.Parent = lista
+
+    for _, op in ipairs(opcoes) do
+        local opt = Instance.new("TextButton")
+        opt.Size = UDim2.new(1, 0, 0, 30)
+        opt.BackgroundTransparency = 1
+        opt.Text = op
+        opt.TextColor3 = COR_TEXTO
+        opt.Font = Enum.Font.GothamBold
+        opt.TextSize = 12
+        opt.ZIndex = 51
+        opt.AutoButtonColor = false
+        opt.Active = true
+        opt.Parent = lista
+        opt.MouseButton1Click:Connect(function()
+            btn.Text = "  " .. op
+            lista.Visible = false
+            if callback then callback(op) end
+        end)
+    end
+
+    btn.MouseButton1Click:Connect(function()
+        lista.Visible = not lista.Visible
+    end)
+    return frame
+end
+
+--=========================================================
+-- PALETA DE CORES
+--=========================================================
+local PaletaAtual = nil
+local function abrirPaleta(callback)
+    if PaletaAtual then PaletaAtual:Destroy() end
+
+    local Paleta = Instance.new("Frame")
+    Paleta.Size = UDim2.new(0, 260, 0, 240)
+    Paleta.Position = UDim2.new(0.5, -130, 0.5, -120)
+    Paleta.BackgroundColor3 = Color3.fromRGB(25, 22, 20)
+    Paleta.BorderSizePixel = 0
+    Paleta.Active = true
+    Paleta.ZIndex = 200
+    Paleta.Parent = ScreenGui
+    Instance.new("UICorner", Paleta).CornerRadius = UDim.new(0, 10)
+    local pStroke = Instance.new("UIStroke", Paleta)
+    pStroke.Color = COR_TOPO
+    pStroke.Thickness = 2
+
+    local pTitle = Instance.new("TextLabel")
+    pTitle.Size = UDim2.new(1, 0, 0, 26)
+    pTitle.BackgroundTransparency = 1
+    pTitle.Text = "Escolha a Cor"
+    pTitle.TextColor3 = COR_TOPO
+    pTitle.Font = Enum.Font.GothamBold
+    pTitle.TextSize = 13
+    pTitle.ZIndex = 201
+    pTitle.Parent = Paleta
+
+    local pClose = Instance.new("TextButton")
+    pClose.Size = UDim2.new(0, 24, 0, 24)
+    pClose.Position = UDim2.new(1, -30, 0, 2)
+    pClose.BackgroundTransparency = 1
+    pClose.Text = "X"
+    pClose.TextColor3 = COR_TOPO
+    pClose.Font = Enum.Font.GothamBold
+    pClose.TextSize = 16
+    pClose.AutoButtonColor = false
+    pClose.Active = true
+    pClose.ZIndex = 202
+    pClose.Parent = Paleta
+    pClose.MouseButton1Click:Connect(function()
+        Paleta:Destroy()
+        PaletaAtual = nil
+    end)
+
+    local coresRapidas = {
+        Color3.fromRGB(255, 100, 20),
+        Color3.fromRGB(255, 255, 255),
+        Color3.fromRGB(255, 30, 30),
+        Color3.fromRGB(255, 220, 30),
+        Color3.fromRGB(30, 200, 50),
+        Color3.fromRGB(30, 130, 255),
+        Color3.fromRGB(0, 220, 220),
+        Color3.fromRGB(255, 100, 200),
+        Color3.fromRGB(180, 60, 255),
+        Color3.fromRGB(255, 20, 147),
+        Color3.fromRGB(180, 255, 30),
+        Color3.fromRGB(0, 0, 0),
+    }
+
+    local frameCores = Instance.new("Frame")
+    frameCores.Size = UDim2.new(1, -24, 0, 160)
+    frameCores.Position = UDim2.new(0, 12, 0, 32)
+    frameCores.BackgroundTransparency = 1
+    frameCores.ZIndex = 201
+    frameCores.Parent = Paleta
+
+    for i, cor in ipairs(coresRapidas) do
+        local coluna = (i - 1) % 4
+        local linha = math.floor((i - 1) / 4)
+        local btnCor = Instance.new("TextButton")
+        btnCor.Size = UDim2.new(0, 50, 0, 34)
+        btnCor.Position = UDim2.new(0, coluna * 56, 0, linha * 40)
+        btnCor.BackgroundColor3 = cor
+        btnCor.Text = ""
+        btnCor.AutoButtonColor = false
+        btnCor.Active = true
+        btnCor.ZIndex = 202
+        btnCor.Parent = frameCores
+        Instance.new("UICorner", btnCor).CornerRadius = UDim.new(0, 6)
+
+        btnCor.MouseButton1Click:Connect(function()
+            callback(cor)
+            Paleta:Destroy()
+            PaletaAtual = nil
+        end)
+    end
+
+    PaletaAtual = Paleta
+end
+
+--=========================================================
+-- ABA AIMBOT
+--=========================================================
+criarCheckbox(PageAimbot, "Aimbot", false, function(v) Config.Aimbot = v end, 4)
+criarCheckbox(PageAimbot, "Disparo Automático", false, function(v) Config.DisparoAuto = v end, 48)
+criarCheckbox(PageAimbot, "Mostrar Círculo de FOV", false, function(v) Config.MostrarFOV = v end, 92)
+criarDropdown(PageAimbot, "Ignorar Inimigos", {"Nenhum", "Amigos", "Bots"}, "Nenhum", function(v) Config.IgnorarInimigos = v end, 136)
+criarSlider(PageAimbot, "FOV", 1, 360, 360, "", function(v) Config.FOV = v end, 204)
+criarSlider(PageAimbot, "Velocidade", 0.1, 5, 1.0, "", function(v) Config.Velocidade = v end, 268, 2)
+criarSlider(PageAimbot, "Distância", 50, 1000, 600, "m", function(v) Config.Distancia = v end, 332)
+criarDropdown(PageAimbot, "Prioridade", {"Mira", "Distância", "Vida"}, "Mira", function(v) Config.Prioridade = v end, 396)
+criarDropdown(PageAimbot, "Osso", {"Cabeça", "Pescoço", "Peito", "Torso"}, "Cabeça", function(v) Config.Osso = v end, 464)
+criarDropdown(PageAimbot, "Gatilho", {"Atirando", "Mirando", "Sempre"}, "Atirando", function(v) Config.Gatilho = v end, 532)
+
+--=========================================================
+-- ABA VISUAIS
+--=========================================================
+criarCheckbox(PageVisuais, "Ativar ESP", false, function(v) Config.AtivarESP = v end, 4)
+criarCheckbox(PageVisuais, "Linhas (em cima)", false, function(v) Config.Linhas = v end, 48)
+criarCheckbox(PageVisuais, "Caixas", false, function(v) Config.Caixas = v end, 92)
+criarCheckbox(PageVisuais, "Esqueleto", false, function(v) Config.Esqueleto = v end, 136)
+criarCheckbox(PageVisuais, "Vida", false, function(v) Config.Vida = v end, 180)
+criarCheckbox(PageVisuais, "Nomes", false, function(v) Config.Nomes = v end, 224)
+criarCheckbox(PageVisuais, "Distância", false, function(v) Config.Distancia2 = v end, 268)
+
+criarSlider(PageVisuais, "Alcance do ESP", 50, 1500, 500, "m", function(v) Config.AlcanceESP = v end, 312)
+criarSlider(PageVisuais, "Espessura do ESP", 1, 5, 1, "", function(v) Config.Espessura = v end, 376)
+
+-- Botão Cor do ESP
+local corESPFrame = Instance.new("Frame")
+corESPFrame.Size = UDim2.new(1, -12, 0, 44)
+corESPFrame.Position = UDim2.new(0, 6, 0, 440)
+corESPFrame.BackgroundColor3 = COR_FUNDO_2
+corESPFrame.BorderSizePixel = 0
+corESPFrame.Active = true
+corESPFrame.ZIndex = 29
+corESPFrame.Parent = PageVisuais
+Instance.new("UICorner", corESPFrame).CornerRadius = UDim.new(0, 8)
+
+local corESPLabel = Instance.new("TextLabel")
+corESPLabel.Size = UDim2.new(1, -60, 1, 0)
+corESPLabel.Position = UDim2.new(0, 14, 0, 0)
+corESPLabel.BackgroundTransparency = 1
+corESPLabel.Text = "Cor do ESP"
+corESPLabel.TextColor3 = COR_TEXTO
+corESPLabel.Font = Enum.Font.GothamBold
+corESPLabel.TextSize = 13
+corESPLabel.TextXAlignment = Enum.TextXAlignment.Left
+corESPLabel.ZIndex = 30
+corESPLabel.Parent = corESPFrame
+
+local corESPIndicador = Instance.new("Frame")
+corESPIndicador.Size = UDim2.new(0, 30, 0, 30)
+corESPIndicador.Position = UDim2.new(1, -40, 0.5, -15)
+corESPIndicador.BackgroundColor3 = Config.CorESP
+corESPIndicador.BorderSizePixel = 0
+corESPIndicador.ZIndex = 30
+corESPIndicador.Parent = corESPFrame
+Instance.new("UICorner", corESPIndicador).CornerRadius = UDim.new(1, 0)
+local corESPStroke = Instance.new("UIStroke", corESPIndicador)
+corESPStroke.Color = Color3.fromRGB(255, 255, 255)
+corESPStroke.Thickness = 2
+
+local corESPBtn = Instance.new("TextButton")
+corESPBtn.Size = UDim2.new(1, 0, 1, 0)
+corESPBtn.BackgroundTransparency = 1
+corESPBtn.Text = ""
+corESPBtn.Active = true
+corESPBtn.ZIndex = 31
+corESPBtn.Parent = corESPFrame
+
+corESPBtn.MouseButton1Click:Connect(function()
+    abrirPaleta(function(cor)
+        Config.CorESP = cor
+        corESPIndicador.BackgroundColor3 = cor
+        -- Aplica em tempo real
+        for _, t in pairs(esp) do
+            if t.box then t.box.Color = cor end
+            if t.linha then t.linha.Color = cor end
+            if t.skeleton then
+                for _, l in ipairs(t.skeleton) do l.Color = cor end
+            end
+        end
+    end)
+end)
+
+--=========================================================
+-- ABA DIVERSOS
+--=========================================================
+criarCheckbox(PageDiversos, "Sem Recuo", false, function(v) Config.SemRecuo = v end, 4)
+criarCheckbox(PageDiversos, "Recarga Rápida", false, function(v) Config.RecargaRapida = v end, 48)
+criarCheckbox(PageDiversos, "Paraquedas Rápido", false, function(v) Config.ParaquedasRapido = v end, 92)
+criarCheckbox(PageDiversos, "Movimento Livre (Noclip)", false, function(v) Config.MovimentoLivre = v end, 136)
+criarCheckbox(PageDiversos, "Forçar 120 FPS", false, function(v)
+    Config.Forcar120FPS = v
+    pcall(function()
+        if setfpscap then
+            setfpscap(v and 120 or 60)
+        end
+    end)
+end, 180)
+criarCheckbox(PageDiversos, "Girar Jogador (Spin)", false, function(v) Config.GirarJogador = v end, 224)
+
+criarSlider(PageDiversos, "Velocidade do Spin", 100, 3000, 1709, "", function(v) Config.VelSpin = v end, 272)
+
+--=========================================================
+-- ABA AJUSTES
+--=========================================================
+local infoAjustes = Instance.new("TextLabel")
+infoAjustes.Size = UDim2.new(1, -12, 1, -20)
+infoAjustes.Position = UDim2.new(0, 6, 0, 10)
+infoAjustes.BackgroundTransparency = 1
+infoAjustes.Text = "URIEL IPA 1.132.1\n\nPainel para iOS atualizado\n\n@Uriellwq\n\nToque no Δ pra abrir\nToque no X pra fechar"
+infoAjustes.TextColor3 = COR_TEXTO_2
+infoAjustes.Font = Enum.Font.GothamBold
+infoAjustes.TextSize = 13
+infoAjustes.TextYAlignment = Enum.TextYAlignment.Top
+infoAjustes.TextWrapped = true
+infoAjustes.ZIndex = 29
+infoAjustes.Parent = PageAjustes
+
+--=========================================================
+-- ESP SYSTEM (corrigido)
+--=========================================================
+local esp = {}
+
+local skeletonConexoes = {
+    {"Head", "UpperTorso"},
+    {"UpperTorso", "LowerTorso"},
+    {"UpperTorso", "LeftUpperArm"},
+    {"UpperTorso", "RightUpperArm"},
+    {"LeftUpperArm", "LeftLowerArm"},
+    {"RightUpperArm", "RightLowerArm"},
+    {"LowerTorso", "LeftUpperLeg"},
+    {"LowerTorso", "RightUpperLeg"},
+    {"LeftUpperLeg", "LeftLowerLeg"},
+    {"RightUpperLeg", "RightLowerLeg"},
+}
+
+local function criarESP(player)
+    if player == LocalPlayer then return end
+    if esp[player] then return end
+
+    local box = Drawing.new("Square")
+    box.Visible = false
+    box.Color = Config.CorESP
+    box.Thickness = 1
+    box.Filled = false
+    box.Transparency = 1
+
+    local healthBg = Drawing.new("Square")
+    healthBg.Visible = false
+    healthBg.Filled = true
+    healthBg.Thickness = 0
+    healthBg.Color = Color3.fromRGB(0, 0, 0)
+    healthBg.Transparency = 0.7
+
+    local health = Drawing.new("Square")
+    health.Visible = false
+    health.Filled = true
+    health.Thickness = 0
+
+    local nome = Drawing.new("Text")
+    nome.Visible = false
+    nome.Center = true
+    nome.Outline = true
+    nome.Font = Drawing.Fonts.UI
+    nome.Color = Color3.fromRGB(255, 255, 255)
+    nome.OutlineColor = Color3.fromRGB(0, 0, 0)
+
+    local dist = Drawing.new("Text")
+    dist.Visible = false
+    dist.Center = true
+    dist.Outline = true
+    dist.Font = Drawing.Fonts.UI
+    dist.Color = Color3.fromRGB(255, 255, 255)
+    dist.OutlineColor = Color3.fromRGB(0, 0, 0)
+
+    -- LINHA EM CIMA DA TELA (do topo até o player)
+    local linha = Drawing.new("Line")
+    linha.Visible = false
+    linha.Color = Config.CorESP
+    linha.Thickness = 2
+    linha.Transparency = 1
+
+    local skeleton = {}
+    for i = 1, #skeletonConexoes do
+        local skLine = Drawing.new("Line")
+        skLine.Visible = false
+        skLine.Color = Config.CorESP
+        skLine.Thickness = 1
+        skLine.Transparency = 1
+        skeleton[i] = skLine
+    end
+
+    esp[player] = {
+        box = box, health = health, healthBg = healthBg,
+        nome = nome, dist = dist, linha = linha,
+        skeleton = skeleton,
+    }
+end
+
+local function removerESP(player)
+    local t = esp[player]
+    if not t then return end
+    pcall(function() t.box:Remove() end)
+    pcall(function() t.health:Remove() end)
+    pcall(function() t.healthBg:Remove() end)
+    pcall(function() t.nome:Remove() end)
+    pcall(function() t.dist:Remove() end)
+    pcall(function() t.linha:Remove() end)
+    if t.skeleton then
+        for _, l in ipairs(t.skeleton) do
+            pcall(function() l:Remove() end)
+        end
+    end
+    esp[player] = nil
+end
+
+for _, p in ipairs(Players:GetPlayers()) do criarESP(p) end
+Players.PlayerAdded:Connect(criarESP)
+Players.PlayerRemoving:Connect(removerESP)
+
+local function pegarBone(char, nome)
+    if not char then return nil end
+    local bone = char:FindFirstChild(nome)
+    if bone then return bone end
+    if nome == "UpperTorso" or nome == "LowerTorso" then return char:FindFirstChild("Torso") end
+    if nome == "LeftUpperArm" or nome == "LeftLowerArm" then return char:FindFirstChild("Left Arm") end
+    if nome == "RightUpperArm" or nome == "RightLowerArm" then return char:FindFirstChild("Right Arm") end
+    if nome == "LeftUpperLeg" or nome == "LeftLowerLeg" then return char:FindFirstChild("Left Leg") end
+    if nome == "RightUpperLeg" or nome == "RightLowerLeg" then return char:FindFirstChild("Right Leg") end
+    return nil
+end
+
+--=========================================================
+-- FOV CIRCLE
+--=========================================================
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 1.5
+fovCircle.NumSides = 80
+fovCircle.Color = COR_TOPO
+fovCircle.Filled = false
+fovCircle.Transparency = 1
+fovCircle.Visible = false
+
+--=========================================================
+-- LOOP ESP
+--=========================================================
+RunService.RenderStepped:Connect(function()
+    -- FOV
+    local vs = Camera.ViewportSize
+    fovCircle.Position = Vector2.new(vs.X / 2, vs.Y / 2)
+    fovCircle.Radius = Config.FOV
+    fovCircle.Visible = Config.MostrarFOV
+
+    local camPos = Camera.CFrame.Position
+
+    for player, t in pairs(esp) do
+        local char = player.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local head = char and char:FindFirstChild("Head")
+
+        if Config.AtivarESP and hum and hrp and head and hum.Health > 0 then
+            local dist3D = (hrp.Position - camPos).Magnitude
+            if dist3D > Config.AlcanceESP then
+                t.box.Visible = false
+                t.health.Visible = false
+                t.healthBg.Visible = false
+                t.nome.Visible = false
+                t.dist.Visible = false
+                t.linha.Visible = false
+                for _, l in ipairs(t.skeleton) do l.Visible = false end
+            else
+                local topoPos, onTop = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+                local basePos, onBase = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
+
+                if onTop and onBase and topoPos.Z > 0 then
+                    local altura = math.abs(basePos.Y - topoPos.Y)
+                    local largura = altura / 2
+                    local pct = hum.Health / hum.MaxHealth
+                    local xEsq = topoPos.X - largura / 2
+                    local yTop = topoPos.Y
+
+                    -- BOX
+                    if Config.Caixas then
+                        t.box.Visible = true
+                        t.box.Size = Vector2.new(largura, altura)
+                        t.box.Position = Vector2.new(xEsq, yTop)
+                        t.box.Thickness = Config.Espessura
+                        t.box.Color = Config.CorESP
+                    else
+                        t.box.Visible = false
+                    end
+
+                    -- HEALTHBAR
+                    if Config.Vida then
+                        local barH = altura * pct
+                        t.healthBg.Visible = true
+                        t.healthBg.Size = Vector2.new(3, altura)
+                        t.healthBg.Position = Vector2.new(xEsq - 5.5, yTop)
+                        t.health.Visible = true
+                        t.health.Size = Vector2.new(2, barH)
+                        t.health.Position = Vector2.new(xEsq - 5, yTop + (altura - barH))
+                        t.health.Color = Color3.fromRGB(255 * (1 - pct), 255 * pct, 0)
+                    else
+                        t.health.Visible = false
+                        t.healthBg.Visible = false
+                    end
+
+                    -- NOME
+                    if Config.Nomes then
+                        t.nome.Visible = true
+                        t.nome.Text = player.Name
+                        t.nome.Size = 13
+                        t.nome.Position = Vector2.new(topoPos.X, yTop - 16)
+                    else
+                        t.nome.Visible = false
+                    end
+
+                    -- DISTÂNCIA
+                    if Config.Distancia2 then
+                        t.dist.Visible = true
+                        t.dist.Text = math.floor(dist3D) .. "m"
+                        t.dist.Size = 12
+                        t.dist.Position = Vector2.new(topoPos.X, yTop + altura + 4)
+                    else
+                        t.dist.Visible = false
+                    end
+
+                    -- LINHA (de CIMA DA TELA até o player - igual última imagem)
+                    if Config.Linhas then
+                        t.linha.Visible = true
+                        t.linha.From = Vector2.new(topoPos.X, 0)         -- TOPO da tela
+                        t.linha.To = Vector2.new(topoPos.X, yTop)        -- cabeça do player
+                        t.linha.Color = Config.CorESP
+                        t.linha.Thickness = Config.Espessura + 1
+                    else
+                        t.linha.Visible = false
+                    end
+
+                    -- SKELETON
+                    if Config.Esqueleto then
+                        for i, conexao in ipairs(skeletonConexoes) do
+                            local boneA = pegarBone(char, conexao[1])
+                            local boneB = pegarBone(char, conexao[2])
+                            local skLine = t.skeleton[i]
+                            if boneA and boneB then
+                                local posA, onA = Camera:WorldToViewportPoint(boneA.Position)
+                                local posB, onB = Camera:WorldToViewportPoint(boneB.Position)
+                                if onA and onB and posA.Z > 0 and posB.Z > 0 then
+                                    skLine.Visible = true
+                                    skLine.From = Vector2.new(posA.X, posA.Y)
+                                    skLine.To = Vector2.new(posB.X, posB.Y)
+                                    skLine.Thickness = Config.Espessura
+                                    skLine.Color = Config.CorESP
+                                else
+                                    skLine.Visible = false
+                                end
+                            else
+                                skLine.Visible = false
+                            end
+                        end
+                    else
+                        for _, l in ipairs(t.skeleton) do l.Visible = false end
+                    end
+                else
+                    t.box.Visible = false
+                    t.health.Visible = false
+                    t.healthBg.Visible = false
+                    t.nome.Visible = false
+                    t.dist.Visible = false
+                    t.linha.Visible = false
+                    for _, l in ipairs(t.skeleton) do l.Visible = false end
+                end
+            end
+        else
+            t.box.Visible = false
+            t.health.Visible = false
+            t.healthBg.Visible = false
+            t.nome.Visible = false
+            t.dist.Visible = false
+            t.linha.Visible = false
+            for _, l in ipairs(t.skeleton) do l.Visible = false end
+        end
+    end
+end)
+
+--=========================================================
+-- AIMBOT
+--=========================================================
+local function pegarOsso(char)
+    if not char then return nil end
+    if Config.Osso == "Cabeça" then return char:FindFirstChild("Head") end
+    if Config.Osso == "Pescoço" then return char:FindFirstChild("Neck") or char:FindFirstChild("Head") end
+    if Config.Osso == "Peito" then return char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") end
+    if Config.Osso == "Torso" then return char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso") end
+    return char:FindFirstChild("Head")
+end
+
+local function pegarAlvo()
+    local centro = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    local melhor, menorDist = nil, math.huge
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local char = player.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            local bone = pegarOsso(char)
+            if bone and hum and hum.Health > 0 then
+                local pos, onScreen = Camera:WorldToViewportPoint(bone.Position)
+                if onScreen and pos.Z > 0 then
+                    local dist = (Vector2.new(pos.X, pos.Y) - centro).Magnitude
+                    local distWorld = (bone.Position - Camera.CFrame.Position).Magnitude
+                    if dist <= Config.FOV and distWorld <= Config.Distancia and dist < menorDist then
+                        menorDist = dist
+                        melhor = bone
+                    end
+                end
+            end
+        end
+    end
+    return melhor
+end
+
+RunService:BindToRenderStep("UrielIPAAimbot", Enum.RenderPriority.Camera.Value + 1, function()
+    if not Config.Aimbot then return end
+    local alvo = pegarAlvo()
+    if not alvo then return end
+    local alvoCF = CFrame.new(Camera.CFrame.Position, alvo.Position)
+    Camera.CFrame = Camera.CFrame:Lerp(alvoCF, Config.Velocidade)
+end)
+
+--=========================================================
+-- SEM RECUO
+--=========================================================
+RunService.RenderStepped:Connect(function()
+    if not Config.SemRecuo then return end
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.CameraOffset = hum.CameraOffset:Lerp(Vector3.new(0, 0, 0), 0.5)
+    end
+end)
+
+--=========================================================
+-- GIRAR JOGADOR (SPIN)
+--=========================================================
+RunService.RenderStepped:Connect(function(dt)
+    if not Config.GirarJogador then return end
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(Config.VelSpin * dt), 0)
+    end
+end)
+
+--=========================================================
+-- MOVIMENTO LIVRE (NOCLIP)
+--=========================================================
+RunService.Stepped:Connect(function()
+    if not Config.MovimentoLivre then return end
+    local char = LocalPlayer.Character
+    if char then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") and part.CanCollide then
+                part.CanCollide = false
+            end
+        end
+    end
+end)
+
+--=========================================================
+-- ARRASTAR PAINEL
+--=========================================================
+local arrastandoMain = false
+local offset = Vector2.new()
+TopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        arrastandoMain = true
+        offset = Vector2.new(input.Position.X - Main.AbsolutePosition.X, input.Position.Y - Main.AbsolutePosition.Y)
+    end
+end)
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        arrastandoMain = false
+    end
+end)
+UIS.InputChanged:Connect(function(input)
+    if arrastandoMain and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+        Main.Position = UDim2.new(0, input.Position.X - offset.X, 0, input.Position.Y - offset.Y)
+    end
+end)
+
+--=========================================================
+-- ARRASTAR BOTÃO Δ
+--=========================================================
+local arrastandoDelta = false
+local offsetDelta = Vector2.new()
+local moveuDelta = false
+
+BotaoDelta.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        arrastandoDelta = true
+        moveuDelta = false
+        offsetDelta = Vector2.new(input.Position.X - BotaoDelta.AbsolutePosition.X, input.Position.Y - BotaoDelta.AbsolutePosition.Y)
+    end
+end)
+
+UIS.InputChanged:Connect(function(input)
+    if arrastandoDelta and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+        local dx = math.abs(input.Position.X - (BotaoDelta.AbsolutePosition.X + offsetDelta.X))
+        local dy = math.abs(input.Position.Y - (BotaoDelta.AbsolutePosition.Y + offsetDelta.Y))
+        if dx > 5 or dy > 5 then moveuDelta = true end
+        BotaoDelta.Position = UDim2.new(0, input.Position.X - offsetDelta.X, 0, input.Position.Y - offsetDelta.Y)
+    end
+end)
+
+UIS.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if arrastandoDelta and not moveuDelta then
+            Main.Visible = not Main.Visible
+            if Main.Visible then
+                BotaoDelta.Visible = false
+                Main.Position = UDim2.new(0.5, -210, 0.5, -160)
+            else
+                BotaoDelta.Visible = true
+            end
+        end
+        arrastandoDelta = false
+    end
+end)
+
+mostrarAba("Aimbot")
+BotaoDelta.Visible = true
+Main.Visible = false
+
+print("[URIEL IPA 1.132.1] Carregado! Toque no Δ pra abrir.")
