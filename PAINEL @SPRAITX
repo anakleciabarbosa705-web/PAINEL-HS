@@ -1,0 +1,675 @@
+-- ============================================
+-- @Moura MODS VERSAO1.123.1
+-- Aimbot Rage Corrigido + Holograma + ESP
+-- ============================================
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- ==================== SERVIÇOS ====================
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+local LP = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- ==================== CONFIG ====================
+local Config = {
+    -- Aimbot
+    Aimbot = false,
+    AimbotRage = false,
+    CheckVisible = false,
+    MostrarFov = false,
+    CorFov = Color3.fromRGB(255, 0, 0),
+    FovRadius = 120,
+    AimbotAlvo = "Cabeça",          -- "Cabeça" / "Peito"
+    -- Holograma
+    Holograma = false,
+    CorHolograma = Color3.fromRGB(0, 255, 255),
+    -- ESP
+    Esp = false, EspBox = false, EspLine = false, EspHealth = false,
+    EspLineTop = false, EspSkeleton = false, EspWeapon = false, EspTracer = false,
+    EspTracerEstilo = "Em cima",
+    CorEsp = Color3.fromRGB(255, 255, 255),
+    CorHealth = Color3.fromRGB(0, 255, 0),
+    -- Funções
+    SpinBot = false, SpinSpeed = 1, Speed = 16, SpeedAtivo = false,
+    NoClip = false, InfiniteJump = false,
+    -- Defesa
+    InstantReload = false, NoRecoil = false, AntiAim = false,
+    -- Visual
+    FullBright = false,
+}
+
+-- ==================== JANELA ====================
+local Window = Rayfield:CreateWindow({
+    Name = "@Moura MODS VERSAO1.123.1",
+    LoadingTitle = "Carregando @Moura MODS...",
+    LoadingSubtitle = "VERSAO1.123.1",
+    Theme = "Amethyst",
+    ToggleUIKeybind = "K",
+})
+
+-- ==================== ABA AIMBOT ====================
+local AimTab = Window:CreateTab("Aimbot", 4483362458)
+AimTab:CreateSection("Aimbot Basico")
+
+AimTab:CreateToggle({
+    Name = "Ativar Aimbot",
+    CurrentValue = false, Flag = "AimbotAtivo",
+    Callback = function(v) Config.Aimbot = v end
+})
+
+AimTab:CreateToggle({
+    Name = "Aimbot Rage",
+    CurrentValue = false, Flag = "AimbotRage",
+    Callback = function(v)
+        Config.AimbotRage = v
+        Rayfield:Notify({
+            Title = "@Moura MODS",
+            Content = v and "Aimbot Rage ATIVADO" or "Aimbot Rage desativado",
+            Duration = 3,
+        })
+    end
+})
+
+AimTab:CreateDropdown({
+    Name = "Alvo do Aimbot",
+    Options = {"Cabeça", "Peito"},
+    CurrentOption = "Cabeça",
+    Flag = "AimbotAlvo",
+    Callback = function(opt) Config.AimbotAlvo = opt end
+})
+
+AimTab:CreateToggle({
+    Name = "Check Visible",
+    CurrentValue = false, Flag = "CheckVisible",
+    Callback = function(v) Config.CheckVisible = v end
+})
+
+AimTab:CreateToggle({
+    Name = "Mostrar Circulo FOV",
+    CurrentValue = false, Flag = "MostrarFov",
+    Callback = function(v) Config.MostrarFov = v end
+})
+
+AimTab:CreateSlider({
+    Name = "Tamanho do FOV",
+    Range = {20, 400}, Increment = 5,
+    Suffix = "px", CurrentValue = 120, Flag = "FovRadius",
+    Callback = function(v) Config.FovRadius = v end
+})
+
+AimTab:CreateColorPicker({
+    Name = "Cor do Circulo FOV",
+    Color = Color3.fromRGB(255, 0, 0),
+    Flag = "CorFov",
+    Callback = function(c) Config.CorFov = c end
+})
+
+-- ==================== ABA HOLOGRAMA ====================
+local HoloTab = Window:CreateTab("Holograma", 4483362458)
+
+HoloTab:CreateToggle({
+    Name = "Holograma (ver atras das paredes)",
+    CurrentValue = false, Flag = "Holograma",
+    Callback = function(v)
+        Config.Holograma = v
+        if v then
+            Rayfield:Notify({
+                Title = "@Moura MODS",
+                Content = "Holograma ATIVADO",
+                Duration = 3,
+            })
+        end
+    end
+})
+
+HoloTab:CreateColorPicker({
+    Name = "Cor do Holograma",
+    Color = Color3.fromRGB(0, 255, 255),
+    Flag = "CorHolograma",
+    Callback = function(c) Config.CorHolograma = c end
+})
+
+-- ==================== ABA ESP ====================
+local EspTab = Window:CreateTab("ESP", 4483362458)
+
+EspTab:CreateToggle({
+    Name = "Ativar ESP", CurrentValue = false, Flag = "EspAtivo",
+    Callback = function(v) Config.Esp = v end
+})
+EspTab:CreateToggle({
+    Name = "ESP Box", CurrentValue = false, Flag = "EspBox",
+    Callback = function(v) Config.EspBox = v end
+})
+EspTab:CreateToggle({
+    Name = "ESP Line (Topo da Tela)", CurrentValue = false, Flag = "EspLine",
+    Callback = function(v) Config.EspLine = v end
+})
+EspTab:CreateToggle({
+    Name = "ESP Line Horizontal", CurrentValue = false, Flag = "EspLineTop",
+    Callback = function(v) Config.EspLineTop = v end
+})
+EspTab:CreateDropdown({
+    Name = "ESP Line Estilo",
+    Options = {"Em cima", "Meio", "Em baixo"},
+    CurrentOption = "Em cima", Flag = "EspLineEstilo",
+    Callback = function(opt) Config.EspTracerEstilo = opt end
+})
+EspTab:CreateToggle({
+    Name = "ESP Healthbar", CurrentValue = false, Flag = "EspHealth",
+    Callback = function(v) Config.EspHealth = v end
+})
+EspTab:CreateToggle({
+    Name = "ESP Skeleton", CurrentValue = false, Flag = "EspSkeleton",
+    Callback = function(v) Config.EspSkeleton = v end
+})
+EspTab:CreateToggle({
+    Name = "ESP Weapon", CurrentValue = false, Flag = "EspWeapon",
+    Callback = function(v) Config.EspWeapon = v end
+})
+EspTab:CreateToggle({
+    Name = "ESP Tracer", CurrentValue = false, Flag = "EspTracer",
+    Callback = function(v) Config.EspTracer = v end
+})
+EspTab:CreateColorPicker({
+    Name = "Cor do ESP", Color = Color3.fromRGB(255, 255, 255),
+    Flag = "CorEsp", Callback = function(c) Config.CorEsp = c end
+})
+EspTab:CreateColorPicker({
+    Name = "Cor da Healthbar", Color = Color3.fromRGB(0, 255, 0),
+    Flag = "CorHealth", Callback = function(c) Config.CorHealth = c end
+})
+
+-- ==================== ABA FUNÇÕES ====================
+local FuncTab = Window:CreateTab("Funcoes", 4483362458)
+
+FuncTab:CreateToggle({
+    Name = "Spin Bot", CurrentValue = false, Flag = "SpinBot",
+    Callback = function(v) Config.SpinBot = v end
+})
+FuncTab:CreateSlider({
+    Name = "Velocidade do Spin (x)", Range = {1, 15}, Increment = 1,
+    Suffix = "x", CurrentValue = 1, Flag = "SpinSpeed",
+    Callback = function(v) Config.SpinSpeed = v end
+})
+FuncTab:CreateToggle({
+    Name = "Ativar Speed", CurrentValue = false, Flag = "SpeedAtivo",
+    Callback = function(v) Config.SpeedAtivo = v end
+})
+FuncTab:CreateSlider({
+    Name = "Velocidade (Speed)", Range = {0, 500}, Increment = 1,
+    Suffix = "studs", CurrentValue = 16, Flag = "SpeedValor",
+    Callback = function(v) Config.Speed = v end
+})
+FuncTab:CreateToggle({
+    Name = "Infinite Jump", CurrentValue = false, Flag = "InfiniteJump",
+    Callback = function(v) Config.InfiniteJump = v end
+})
+FuncTab:CreateToggle({
+    Name = "No Clip", CurrentValue = false, Flag = "NoClip",
+    Callback = function(v) Config.NoClip = v end
+})
+
+-- ==================== ABA DEFESA ====================
+local DefTab = Window:CreateTab("Defesa", 4483362458)
+
+DefTab:CreateToggle({
+    Name = "Instant Reload", CurrentValue = false, Flag = "InstantReload",
+    Callback = function(v) Config.InstantReload = v end
+})
+DefTab:CreateToggle({
+    Name = "No Recoil", CurrentValue = false, Flag = "NoRecoil",
+    Callback = function(v) Config.NoRecoil = v end
+})
+DefTab:CreateToggle({
+    Name = "Anti-Aim", CurrentValue = false, Flag = "AntiAim",
+    Callback = function(v) Config.AntiAim = v end
+})
+
+-- ==================== ABA VISUAL ====================
+local VisTab = Window:CreateTab("Visual", 4483362458)
+
+VisTab:CreateToggle({
+    Name = "Full Bright", CurrentValue = false, Flag = "FullBright",
+    Callback = function(v)
+        Config.FullBright = v
+        if v then
+            Lighting.Brightness = 3
+            Lighting.ClockTime = 14
+            Lighting.FogEnd = 100000
+            Lighting.GlobalShadows = false
+            Lighting.OutdoorAmbient = Color3.fromRGB(200, 200, 200)
+        else
+            Lighting.Brightness = 1
+            Lighting.GlobalShadows = true
+            Lighting.OutdoorAmbient = Color3.fromRGB(70, 70, 70)
+        end
+    end
+})
+VisTab:CreateColorPicker({
+    Name = "Cor do Painel", Color = Color3.fromRGB(140, 40, 180),
+    Flag = "CorPainel",
+    Callback = function(c) pcall(function() Rayfield:ChangeThemeColor(c) end) end
+})
+
+-- ==================== ABA UTILIDADES ====================
+local UtilTab = Window:CreateTab("Utilidades", 4483362458)
+
+UtilTab:CreateButton({
+    Name = "Atualizar Player List",
+    Callback = function()
+        local lista = {}
+        for _, pl in ipairs(Players:GetPlayers()) do
+            if pl ~= LP then table.insert(lista, pl.Name) end
+        end
+        Rayfield:Notify({
+            Title = "@Moura MODS - Player List",
+            Content = #lista > 0 and table.concat(lista, ", ") or "Ninguem online",
+            Duration = 8,
+        })
+    end
+})
+
+local nomes = {}
+for _, pl in ipairs(Players:GetPlayers()) do
+    if pl ~= LP then table.insert(nomes, pl.Name) end
+end
+
+UtilTab:CreateDropdown({
+    Name = "Teleport to Player",
+    Options = (#nomes > 0) and nomes or {"Ninguem"},
+    CurrentOption = (#nomes > 0) and nomes[1] or "Ninguem",
+    Flag = "TeleportPlayer",
+    Callback = function(opt)
+        local alvo = Players:FindFirstChild(opt)
+        if alvo and alvo.Character and LP.Character then
+            local myHrp = LP.Character:FindFirstChild("HumanoidRootPart")
+            local alvoHrp = alvo.Character:FindFirstChild("HumanoidRootPart")
+            if myHrp and alvoHrp then
+                myHrp.CFrame = alvoHrp.CFrame + Vector3.new(0, 3, 0)
+                Rayfield:Notify({
+                    Title = "@Moura MODS",
+                    Content = "Teleportado ate " .. opt,
+                    Duration = 3,
+                })
+            end
+        end
+    end
+})
+
+UtilTab:CreateButton({
+    Name = "Server Hop (Trocar Servidor)",
+    Callback = function()
+        local url = "https://games.roblox.com/v1/games/" .. game.PlaceId ..
+                    "/servers/Public?sortOrder=Asc&limit=100"
+        local ok, res = pcall(function() return HttpService:JSONDecode(game:HttpGet(url)) end)
+        if ok and res and res.data then
+            for _, s in ipairs(res.data) do
+                if s.playing < s.maxPlayers and s.id ~= game.JobId then
+                    TeleportService:TeleportToPlaceInstance(game.PlaceId, s.id, LP)
+                    return
+                end
+            end
+        end
+        Rayfield:Notify({
+            Title = "@Moura MODS",
+            Content = "Nenhum servidor encontrado.",
+            Duration = 4,
+        })
+    end
+})
+
+UtilTab:CreateButton({
+    Name = "Rejoin (Voltar ao Servidor)",
+    Callback = function() TeleportService:Teleport(game.PlaceId, LP) end
+})
+
+-- ==================== FUNÇÃO: PEGAR PONTO DO ALVO ====================
+local function PegarPontoAlvo(char)
+    if Config.AimbotAlvo == "Cabeça" then
+        return char:FindFirstChild("Head")
+    elseif Config.AimbotAlvo == "Peito" then
+        return char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso")
+    end
+    return char:FindFirstChild("Head")
+end
+
+-- ==================== ESP ====================
+local espCache = {}
+
+local function CriarESP()
+    local box = Drawing.new("Square"); box.Thickness = 1; box.Filled = false; box.Visible = false
+    local line = Drawing.new("Line"); line.Thickness = 1; line.Visible = false
+    local lineTop = Drawing.new("Line"); lineTop.Thickness = 2; lineTop.Visible = false
+    local healthBg = Drawing.new("Square"); healthBg.Filled = true; healthBg.Visible = false
+    local health = Drawing.new("Square"); health.Filled = true; health.Visible = false
+    local weapon = Drawing.new("Text"); weapon.Size = 12; weapon.Center = true
+    weapon.Outline = true; weapon.Visible = false
+    local skel = {}
+    for i = 1, 15 do
+        local ln = Drawing.new("Line")
+        ln.Thickness = 1; ln.Visible = false
+        skel[i] = ln
+    end
+    return {box=box, line=line, lineTop=lineTop, healthBg=healthBg,
+            health=health, weapon=weapon, skel=skel}
+end
+
+local function RemoverESP(e)
+    for _, o in pairs(e) do
+        if type(o) == "table" then
+            for _, o2 in pairs(o) do pcall(function() o2:Remove() end) end
+        else pcall(function() o:Remove() end) end
+    end
+end
+
+local R15Bones = {
+    {"Head","UpperTorso"}, {"UpperTorso","LowerTorso"},
+    {"UpperTorso","LeftUpperArm"}, {"LeftUpperArm","LeftLowerArm"},
+    {"LeftLowerArm","LeftHand"},
+    {"UpperTorso","RightUpperArm"}, {"RightUpperArm","RightLowerArm"},
+    {"RightLowerArm","RightHand"},
+    {"LowerTorso","LeftUpperLeg"}, {"LeftUpperLeg","LeftLowerLeg"},
+    {"LeftLowerLeg","LeftFoot"},
+    {"LowerTorso","RightUpperLeg"}, {"RightUpperLeg","RightLowerLeg"},
+    {"RightLowerLeg","RightFoot"},
+}
+local R6Bones = {
+    {"Head","Torso"}, {"Torso","Left Arm"}, {"Torso","Right Arm"},
+    {"Torso","Left Leg"}, {"Torso","Right Leg"},
+}
+
+RunService.RenderStepped:Connect(function()
+    Camera = workspace.CurrentCamera
+    if not Camera then return end
+    local vivos = {}
+    if not Config.Esp then
+        for pl, e in pairs(espCache) do RemoverESP(e); espCache[pl] = nil end
+        return
+    end
+    for _, pl in ipairs(Players:GetPlayers()) do
+        if pl == LP then continue end
+        local ch = pl.Character; if not ch then continue end
+        local hrp = ch:FindFirstChild("HumanoidRootPart")
+        local head = ch:FindFirstChild("Head")
+        local hum = ch:FindFirstChildOfClass("Humanoid")
+        if not (hrp and head and hum) or hum.Health <= 0 then continue end
+        local headP, headOn = Camera:WorldToViewportPoint(head.Position)
+        local feetP, feetOn = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
+        if not headOn or not feetOn or headP.Z <= 0 then continue end
+        local e = espCache[pl]
+        if not e then e = CriarESP(); espCache[pl] = e end
+        vivos[pl] = true
+        local altura = math.abs(headP.Y - feetP.Y) * 1.1
+        local largura = altura * 0.65
+        local x = headP.X - largura / 2
+        local y = headP.Y
+
+        e.box.Visible = Config.EspBox
+        if Config.EspBox then
+            e.box.Size = Vector2.new(largura, altura)
+            e.box.Position = Vector2.new(x, y)
+            e.box.Color = Config.CorEsp
+        end
+        e.line.Visible = Config.EspLine
+        if Config.EspLine then
+            e.line.From = Vector2.new(Camera.ViewportSize.X / 2, 0)
+            e.line.To = Vector2.new(headP.X, y)
+            e.line.Color = Config.CorEsp
+        end
+        e.lineTop.Visible = Config.EspLineTop
+        if Config.EspLineTop then
+            local dy = -8
+            if Config.EspTracerEstilo == "Em baixo" then dy = altura + 8
+            elseif Config.EspTracerEstilo == "Meio" then dy = altura / 2 end
+            e.lineTop.From = Vector2.new(x - 10, y + dy)
+            e.lineTop.To = Vector2.new(x + largura + 10, y + dy)
+            e.lineTop.Color = Config.CorEsp
+        end
+        e.healthBg.Visible = Config.EspHealth
+        e.health.Visible = Config.EspHealth
+        if Config.EspHealth then
+            local pct = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
+            local barH = altura * pct
+            local bx = x - 6
+            e.healthBg.Size = Vector2.new(3, altura)
+            e.healthBg.Position = Vector2.new(bx, y)
+            e.healthBg.Color = Color3.fromRGB(40, 40, 40)
+            e.health.Size = Vector2.new(3, barH)
+            e.health.Position = Vector2.new(bx, y + (altura - barH))
+            e.health.Color = Config.CorHealth
+        end
+        e.weapon.Visible = Config.EspWeapon
+        if Config.EspWeapon then
+            local arma = "Sem arma"
+            for _, item in ipairs(ch:GetChildren()) do
+                if item:IsA("Tool") then arma = item.Name; break end
+            end
+            e.weapon.Position = Vector2.new(headP.X, y + altura + 4)
+            e.weapon.Text = arma
+            e.weapon.Color = Color3.fromRGB(255, 220, 100)
+        end
+        local bonesLista = ch:FindFirstChild("UpperTorso") and R15Bones or R6Bones
+        for i, s in ipairs(e.skel) do
+            if Config.EspSkeleton and bonesLista[i] then
+                local p1 = ch:FindFirstChild(bonesLista[i][1])
+                local p2 = ch:FindFirstChild(bonesLista[i][2])
+                if p1 and p2 then
+                    local v1, on1 = Camera:WorldToViewportPoint(p1.Position)
+                    local v2, on2 = Camera:WorldToViewportPoint(p2.Position)
+                    if on1 and on2 and v1.Z > 0 and v2.Z > 0 then
+                        s.From = Vector2.new(v1.X, v1.Y)
+                        s.To = Vector2.new(v2.X, v2.Y)
+                        s.Color = Config.CorEsp
+                        s.Visible = true
+                    else s.Visible = false end
+                else s.Visible = false end
+            else s.Visible = false end
+        end
+    end
+    for pl, e in pairs(espCache) do
+        if not vivos[pl] then RemoverESP(e); espCache[pl] = nil end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(pl)
+    local e = espCache[pl]
+    if e then RemoverESP(e); espCache[pl] = nil end
+end)
+
+-- ==================== HOLOGRAMA ====================
+local holoCache = {}
+
+local function LimparHolo()
+    for _, obj in pairs(holoCache) do
+        if obj.highlight then pcall(function() obj.highlight:Destroy() end) end
+    end
+    holoCache = {}
+end
+
+RunService.RenderStepped:Connect(function()
+    if not Config.Holograma then
+        if next(holoCache) ~= nil then LimparHolo() end
+        return
+    end
+
+    for _, pl in ipairs(Players:GetPlayers()) do
+        if pl == LP then continue end
+        local ch = pl.Character
+        if not ch then continue end
+
+        if not holoCache[pl] then
+            local highlight = Instance.new("Highlight")
+            highlight.Name = "MouraHolograma"
+            highlight.Adornee = ch
+            highlight.FillColor = Config.CorHolograma
+            highlight.OutlineColor = Config.CorHolograma
+            highlight.FillTransparency = 0.5
+            highlight.OutlineTransparency = 0
+            highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            highlight.Parent = ch
+            holoCache[pl] = {highlight = highlight}
+        else
+            local obj = holoCache[pl]
+            if obj.highlight and obj.highlight.Parent then
+                obj.highlight.FillColor = Config.CorHolograma
+                obj.highlight.OutlineColor = Config.CorHolograma
+                obj.highlight.Adornee = ch
+            else
+                holoCache[pl] = nil
+            end
+        end
+    end
+
+    for pl, obj in pairs(holoCache) do
+        if not pl.Character or not pl.Parent then
+            if obj.highlight then pcall(function() obj.highlight:Destroy() end) end
+            holoCache[pl] = nil
+        end
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(pl)
+    local obj = holoCache[pl]
+    if obj and obj.highlight then pcall(function() obj.highlight:Destroy() end) end
+    holoCache[pl] = nil
+end)
+
+-- ==================== CÍRCULO FOV ====================
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 1
+fovCircle.NumSides = 60
+fovCircle.Filled = false
+fovCircle.Visible = false
+
+RunService.RenderStepped:Connect(function()
+    if not Camera then return end
+    if Config.MostrarFov then
+        fovCircle.Visible = true
+        fovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+        fovCircle.Radius = Config.FovRadius
+        fovCircle.Color = Config.CorFov
+    else
+        fovCircle.Visible = false
+    end
+end)
+
+-- ==================== AIMBOT ====================
+local function PegaAlvo()
+    local melhor = nil
+    local menorDist = math.huge
+    local centro = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+
+    for _, pl in ipairs(Players:GetPlayers()) do
+        if pl == LP then continue end
+        local ch = pl.Character; if not ch then continue end
+        local ponto = PegarPontoAlvo(ch)
+        local hum = ch:FindFirstChildOfClass("Humanoid")
+        if not (ponto and hum) or hum.Health <= 0 then continue end
+
+        if Config.CheckVisible then
+            local _, onScreen = Camera:WorldToViewportPoint(ponto.Position)
+            if not onScreen then continue end
+        end
+
+        local pos, onScreen = Camera:WorldToViewportPoint(ponto.Position)
+        if not onScreen or pos.Z <= 0 then continue end
+
+        local dist = (Vector2.new(pos.X, pos.Y) - centro).Magnitude
+        if dist < menorDist and dist <= Config.FovRadius then
+            menorDist = dist
+            melhor = ponto
+        end
+    end
+    return melhor
+end
+
+-- ==================== AIMBOT RAGE (CORRIGIDO) ====================
+-- Usa BindToRenderStep com prioridade alta pra sobrescrever o jogo
+RunService:BindToRenderStep("MouraAimbotRage", Enum.RenderPriority.Camera.Value + 1, function()
+    if not Config.AimbotRage then return end
+    Camera = workspace.CurrentCamera
+    if not Camera then return end
+
+    local alvo = PegaAlvo()
+    if not alvo then return end
+
+    -- Mira direto no ponto do alvo
+    Camera.CFrame = CFrame.new(Camera.CFrame.Position, alvo.Position)
+end)
+
+-- ==================== AIMBOT NORMAL (segurar botão direito) ====================
+RunService.RenderStepped:Connect(function()
+    if not Config.Aimbot then return end
+    if not UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton2) then return end
+
+    local alvo = PegaAlvo()
+    if not alvo then return end
+
+    Camera.CFrame = CFrame.new(Camera.CFrame.Position, alvo.Position)
+end)
+
+-- ==================== SPIN BOT ====================
+RunService.RenderStepped:Connect(function(dt)
+    if not Config.SpinBot then return end
+    local ch = LP.Character; if not ch then return end
+    local hrp = ch:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(360 * Config.SpinSpeed * dt), 0)
+end)
+
+-- ==================== SPEED ====================
+RunService.Heartbeat:Connect(function()
+    local ch = LP.Character; if not ch then return end
+    local hum = ch:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+    if Config.SpeedAtivo then
+        hum.WalkSpeed = Config.Speed
+    else
+        if hum.WalkSpeed == Config.Speed and Config.Speed ~= 16 then
+            hum.WalkSpeed = 16
+        end
+    end
+end)
+
+-- ==================== INFINITE JUMP ====================
+UIS.JumpRequest:Connect(function()
+    if not Config.InfiniteJump then return end
+    local ch = LP.Character; if not ch then return end
+    local hum = ch:FindFirstChildOfClass("Humanoid")
+    if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+end)
+
+-- ==================== NO CLIP ====================
+RunService.Stepped:Connect(function()
+    if not Config.NoClip then return end
+    local ch = LP.Character
+    if not ch then return end
+    for _, p in ipairs(ch:GetDescendants()) do
+        if p:IsA("BasePart") then p.CanCollide = false end
+    end
+end)
+
+-- ==================== ANTI-AIM ====================
+RunService.RenderStepped:Connect(function(dt)
+    if not Config.AntiAim then return end
+    local ch = LP.Character; if not ch then return end
+    local hum = ch:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.CameraOffset = Vector3.new(
+            math.random(-50, 50) / 100,
+            0,
+            math.random(-50, 50) / 100
+        )
+    end
+end)
+
+-- ==================== NOTIFICAÇÃO ====================
+Rayfield:Notify({
+    Title = "@Moura MODS VERSAO1.123.1",
+    Content = "Script carregado! Aperte K pra abrir/fechar.",
+    Duration = 6,
+})
