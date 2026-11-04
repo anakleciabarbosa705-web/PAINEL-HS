@@ -1,479 +1,510 @@
 -- ============================================
--- 🖥️ URIEL XITER EMULADOR
--- Info: SPRAIT @moura @caie @storm
--- Biblioteca: WindUI
+-- 🖥️ SPRAIT XITER - CORRIGIDO PARA MOBILE + LOGO
 -- ============================================
-local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua"))()
-
-local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
-local LP = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
--- ==================== CONFIG ====================
-local C = {
-    AimbotRage = false,
-    FovVisivel = false,
-    FovRadius = 150,
-    Alvo = "Head",
-    HeadshotRate = 75,
-    EspAtivo = false,
-    EspBox = false, EspBoxEstilo = "Guardado",
-    EspLinha = false, EspLinhaEstilo = "Topo",
-    EspEsqueleto = false, EspHatbar = false, EspNome = false,
-    EspDist = false, EspSnapLine = false,
-    HologramaPlayer = false, HologramaArma = false,
-    RGB = true,
-    CorEsp = Color3.fromRGB(255,255,255),
-    CorHoloPlayer = Color3.fromRGB(255,0,0),
-    CorHoloArma = Color3.fromRGB(0,255,255),
-    SpinBot = false, SpinSpeed = 15,
-    NoClip = false, Speed2X = false, TirarAnimacao = false,
+local oldGui = CoreGui:FindFirstChild("DreamXiter")
+if oldGui then oldGui:Destroy() end
+
+-- ==================== CONFIGURAÇÕES ====================
+local CFG = {
+    Aimbot = false, TipoAimbot = "Rage", PuxarMira = true,
+    IgnorarDerrotados = true, IgnorarBots = true, NoRecoil = false,
+    DelayAimbot = 0.2, ParteAlvo = "Head",
+    MostrarFov = true, FovSize = 150,
+    EspJogadores = true, EspLinha = false, EspCaixa = true,
+    EspVida = false, EspSkeleton = true, EspNome = false,
+    EspDistancia = false, EspArma = false, ArmaIcone = true,
+    MarcacaoInimigo = true, CorEsqueleto = Color3.fromRGB(255,255,255),
+    PosicaoVida = "Esquerda", DistanciaMax = 250,
+    SpinBot = false, TP_Atras = false, Noclip = false,
+    TP_Marcado = false, PiscarVida = false, StreamMode = true,
 }
 
--- ==================== TEMA PRETO TOTAL ====================
-local Tema = {
-    Name = "PretoTotal",
-    Accent = Color3.fromRGB(255, 255, 255),
-    Background = Color3.fromRGB(0, 0, 0),
-    Outline = Color3.fromRGB(0, 0, 0),
-    Text = Color3.fromRGB(255, 255, 255),
-    Placeholder = Color3.fromRGB(150, 150, 150),
-    Button = Color3.fromRGB(20, 20, 20),
-    Icon = Color3.fromRGB(255, 255, 255),
-}
+-- ==================== CORES ====================
+local CorFundo = Color3.fromRGB(15, 15, 15)
+local CorPainel = Color3.fromRGB(25, 25, 25)
+local CorBorda = Color3.fromRGB(150, 20, 20)
+local CorVermelho = Color3.fromRGB(200, 30, 30)
+local CorVermelhoVivo = Color3.fromRGB(255, 50, 50)
+local CorTexto = Color3.fromRGB(230, 230, 230)
+local CorVerde = Color3.fromRGB(40, 180, 60)
+local FonteBold = Enum.Font.GothamBold
+local Fonte = Enum.Font.Gotham
 
-WindUI:AddTheme(Tema)
-WindUI:SetTheme("PretoTotal")
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "DreamXiter"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.DisplayOrder = 99999
+ScreenGui.Parent = CoreGui
 
--- ==================== JANELA ====================
-local Window = WindUI:CreateWindow({
-    Title = "🖥️ URIEL XITER EMULADOR",
-    Author = "SPRAIT @moura @caie @storm",
-    Icon = "monitor",
-    Theme = "PretoTotal",
-    ToggleKey = Enum.KeyCode.K,
-    Size = UDim2.fromOffset(420, 400),
-})
+-- ==================== JANELA PRINCIPAL (TAMANHO REDUZIDO PRA MOBILE) ====================
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 420, 0, 280) -- 🔹 Tamanho ideal para telas de celular
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -140)
+MainFrame.BackgroundColor3 = CorFundo
+MainFrame.BorderSizePixel = 0
+MainFrame.Visible = true -- 🔹 Abre direto
+MainFrame.Parent = ScreenGui
+MainFrame.ZIndex = 10
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
+local mainStroke = Instance.new("UIStroke", MainFrame)
+mainStroke.Color = CorBorda
+mainStroke.Thickness = 2
 
--- ==================== ABA AIM ====================
-local AimTab = Window:Tab({ Title = "AIM", Icon = "crosshair" })
+-- ==================== BARRA DE TÍTULO (COM LOGO GÓTICA) ====================
+local LogoFrame = Instance.new("Frame")
+LogoFrame.Size = UDim2.new(1, 0, 0, 55)
+LogoFrame.Position = UDim2.new(0, 0, 0, 0)
+LogoFrame.BackgroundColor3 = CorPainel
+LogoFrame.BorderSizePixel = 0
+LogoFrame.Parent = MainFrame
+LogoFrame.ZIndex = 11
+Instance.new("UICorner", LogoFrame).CornerRadius = UDim.new(0, 8)
 
-AimTab:Toggle({
-    Title = "Aimbot Rage",
-    Default = false,
-    Callback = function(v) C.AimbotRage = v end,
-})
+-- Texto SPRAIT (Gótico)
+local SpraitText = Instance.new("TextLabel")
+SpraitText.Size = UDim2.new(1, -40, 0, 25)
+SpraitText.Position = UDim2.new(0, 0, 0, 2)
+SpraitText.BackgroundTransparency = 1
+SpraitText.Font = Enum.Font.OldEnglishText
+SpraitText.Text = "SPRAIT"
+SpraitText.TextColor3 = CorVermelhoVivo
+SpraitText.TextSize = 20
+SpraitText.Parent = LogoFrame
+SpraitText.ZIndex = 12
 
-AimTab:Toggle({
-    Title = "Círculo Fov",
-    Default = false,
-    Callback = function(v) C.FovVisivel = v end,
-})
+-- Texto XITER (Gótico)
+local XiterText = Instance.new("TextLabel")
+XiterText.Size = UDim2.new(1, -40, 0, 25)
+XiterText.Position = UDim2.new(0, 0, 0, 22)
+XiterText.BackgroundTransparency = 1
+XiterText.Font = Enum.Font.OldEnglishText
+XiterText.Text = "XITER"
+XiterText.TextColor3 = Color3.fromRGB(255, 255, 255)
+XiterText.TextSize = 20
+XiterText.Parent = LogoFrame
+XiterText.ZIndex = 12
 
-AimTab:Slider({
-    Title = "Tamanho do Fov",
-    Value = { Min = 50, Max = 500, Default = 150 },
-    Callback = function(v) C.FovRadius = v end,
-})
+-- 🔹 BOTÃO TOGGLE (∆ / ▽) para Abrir/Fechar
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(0, 30, 0, 30)
+ToggleBtn.Position = UDim2.new(1, -35, 0.5, -15)
+ToggleBtn.BackgroundColor3 = CorFundo
+ToggleBtn.Text = "∆"
+ToggleBtn.TextColor3 = CorVermelhoVivo
+ToggleBtn.Font = FonteBold
+ToggleBtn.TextSize = 18
+ToggleBtn.Parent = LogoFrame
+ToggleBtn.ZIndex = 13
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 4)
 
-AimTab:Dropdown({
-    Title = "Escolher Alvo",
-    Values = { "Head", "Torso", "Pescoço" },
-    Default = "Head",
-    Callback = function(v) C.Alvo = v end,
-})
+-- ==================== CONTEÚDO (ABAS + SIDEBAR) ====================
+local ContentWrapper = Instance.new("Frame")
+ContentWrapper.Size = UDim2.new(1, 0, 1, -55)
+ContentWrapper.Position = UDim2.new(0, 0, 0, 55)
+ContentWrapper.BackgroundTransparency = 1
+ContentWrapper.Parent = MainFrame
+ContentWrapper.ZIndex = 11
 
-AimTab:Slider({
-    Title = "Headshot Rate",
-    Value = { Min = 0, Max = 100, Default = 75 },
-    Callback = function(v) C.HeadshotRate = v end,
-})
+-- SIDEBAR (MENU ESQUERDO)
+local Sidebar = Instance.new("Frame")
+Sidebar.Size = UDim2.new(0, 80, 1, -10)
+Sidebar.Position = UDim2.new(0, 5, 0, 5)
+Sidebar.BackgroundColor3 = CorPainel
+Sidebar.Parent = ContentWrapper
+Sidebar.ZIndex = 12
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 6)
 
--- ==================== ABA ESP ====================
-local EspTab = Window:Tab({ Title = "ESP", Icon = "eye" })
-
-EspTab:Toggle({ Title = "Ativar ESP", Default = false,
-    Callback = function(v) C.EspAtivo = v end })
-EspTab:Toggle({ Title = "ESP Box", Default = false,
-    Callback = function(v) C.EspBox = v end })
-EspTab:Dropdown({ Title = "ESP Box Estilo",
-    Values = { "Guardado", "Imperfeito" }, Default = "Guardado",
-    Callback = function(v) C.EspBoxEstilo = v end })
-EspTab:Toggle({ Title = "ESP Line", Default = false,
-    Callback = function(v) C.EspLinha = v end })
-EspTab:Dropdown({ Title = "ESP Line Estilo",
-    Values = { "Topo", "Meio", "Cima" }, Default = "Topo",
-    Callback = function(v) C.EspLinhaEstilo = v end })
-EspTab:Toggle({ Title = "ESP Esqueleto", Default = false,
-    Callback = function(v) C.EspEsqueleto = v end })
-EspTab:Toggle({ Title = "ESP Hatbar", Default = false,
-    Callback = function(v) C.EspHatbar = v end })
-EspTab:Toggle({ Title = "ESP Nome", Default = false,
-    Callback = function(v) C.EspNome = v end })
-EspTab:Toggle({ Title = "ESP Distance", Default = false,
-    Callback = function(v) C.EspDist = v end })
-EspTab:Toggle({ Title = "ESP SnapLine", Default = false,
-    Callback = function(v) C.EspSnapLine = v end })
-
-EspTab:Section({ Title = "Hologramas" })
-
-EspTab:Toggle({ Title = "Holograma Player", Default = false,
-    Callback = function(v) C.HologramaPlayer = v end })
-EspTab:Toggle({ Title = "Holograma Arma", Default = false,
-    Callback = function(v) C.HologramaArma = v end })
-
-EspTab:Section({ Title = "Cores" })
-
-EspTab:Toggle({ Title = "Cor RGB (arco-iris)", Default = true,
-    Callback = function(v) C.RGB = v end })
-EspTab:Colorpicker({ Title = "Cor do ESP",
-    Default = Color3.fromRGB(255,255,255),
-    Callback = function(c) C.CorEsp = c end })
-EspTab:Colorpicker({ Title = "Cor Holograma Player",
-    Default = Color3.fromRGB(255,0,0),
-    Callback = function(c) C.CorHoloPlayer = c end })
-EspTab:Colorpicker({ Title = "Cor Holograma Arma",
-    Default = Color3.fromRGB(0,255,255),
-    Callback = function(c) C.CorHoloArma = c end })
-
--- ==================== ABA FFH4X ====================
-local FFHTab = Window:Tab({ Title = "FFH4X", Icon = "zap" })
-
-FFHTab:Toggle({ Title = "Spin Bot", Default = false,
-    Callback = function(v) C.SpinBot = v end })
-FFHTab:Slider({ Title = "Velocidade do Spin",
-    Value = { Min = 1, Max = 15, Default = 15 },
-    Callback = function(v) C.SpinSpeed = v end })
-FFHTab:Toggle({ Title = "Speed 2X (100)", Default = false,
-    Callback = function(v) C.Speed2X = v end })
-FFHTab:Toggle({ Title = "Tirar Animação dos Players", Default = false,
-    Callback = function(v) C.TirarAnimacao = v end })
-FFHTab:Toggle({ Title = "NoClip (atravessa parede)", Default = false,
-    Callback = function(v) C.NoClip = v end })
-
--- ==================== ABA INFO ====================
-local InfoTab = Window:Tab({ Title = "INFO", Icon = "info" })
-
-InfoTab:Paragraph({ Title = "🖥️ URIEL XITER EMULADOR",
-    Desc = "Criador: SPRAIT" })
-InfoTab:Paragraph({ Title = "Devs",
-    Desc = "@moura | @caie | @storm" })
-InfoTab:Paragraph({ Title = "Versão",
-    Desc = "1.0 | WindUI" })
-
--- ==================== RGB ====================
-local hueEsp = 0
-local function CorRGB(h) return Color3.fromHSV(h, 1, 1) end
-RunService.RenderStepped:Connect(function(dt)
-    hueEsp = (hueEsp + dt * 0.5) % 1
-end)
-
--- ==================== ESP ====================
-local espCache = {}
-
-local function CriarESP()
-    local box = Drawing.new("Square"); box.Thickness = 1; box.Filled = false; box.Visible = false
-    local line = Drawing.new("Line"); line.Thickness = 1; line.Visible = false
-    local snap = Drawing.new("Line"); snap.Thickness = 1; snap.Visible = false
-    local hBg = Drawing.new("Square"); hBg.Filled = true; hBg.Visible = false
-    local h = Drawing.new("Square"); h.Filled = true; h.Visible = false
-    local nome = Drawing.new("Text"); nome.Size = 13; nome.Center = true; nome.Outline = true; nome.Visible = false
-    local dist = Drawing.new("Text"); dist.Size = 12; dist.Center = true; dist.Outline = true; dist.Visible = false
-    local skel = {}
-    for i = 1, 15 do
-        local ln = Drawing.new("Line"); ln.Thickness = 1; ln.Visible = false
-        skel[i] = ln
-    end
-    return { box=box, line=line, snap=snap, hBg=hBg, h=h, nome=nome, dist=dist, skel=skel }
-end
-
-local function RemoverESP(e)
-    for _, o in pairs(e) do
-        if type(o) == "table" then
-            for _, o2 in pairs(o) do pcall(function() o2:Remove() end) end
-        else pcall(function() o:Remove() end) end
-    end
-end
-
-local R15Bones = {
-    {"Head","UpperTorso"}, {"UpperTorso","LowerTorso"}, {"UpperTorso","LeftUpperArm"},
-    {"LeftUpperArm","LeftLowerArm"}, {"LeftLowerArm","LeftHand"}, {"UpperTorso","RightUpperArm"},
-    {"RightUpperArm","RightLowerArm"}, {"RightLowerArm","RightHand"}, {"LowerTorso","LeftUpperLeg"},
-    {"LeftUpperLeg","LeftLowerLeg"}, {"LeftLowerLeg","LeftFoot"}, {"LowerTorso","RightUpperLeg"},
-    {"RightUpperLeg","RightLowerLeg"}, {"RightLowerLeg","RightFoot"},
-}
-local R6Bones = {
-    {"Head","Torso"}, {"Torso","Left Arm"}, {"Torso","Right Arm"}, {"Torso","Left Leg"}, {"Torso","Right Leg"},
-}
-
-RunService.RenderStepped:Connect(function()
-    Camera = workspace.CurrentCamera
-    if not Camera then return end
-
-    local vivos = {}
-    local ligado = C.EspAtivo and (C.EspBox or C.EspLinha or C.EspEsqueleto or C.EspHatbar or C.EspNome or C.EspDist or C.EspSnapLine)
-    if not ligado then
-        for pl, e in pairs(espCache) do RemoverESP(e); espCache[pl] = nil end
-        return
-    end
-
-    local corAtual = C.RGB and CorRGB(hueEsp) or C.CorEsp
-
-    for _, pl in ipairs(Players:GetPlayers()) do
-        if pl == LP then continue end
-        local ch = pl.Character; if not ch then continue end
-        local hrp = ch:FindFirstChild("HumanoidRootPart"); local head = ch:FindFirstChild("Head")
-        local hum = ch:FindFirstChildOfClass("Humanoid")
-        if not (hrp and head and hum) or hum.Health <= 0 then continue end
-
-        local headP, headOn = Camera:WorldToViewportPoint(head.Position)
-        local feetP, feetOn = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 3, 0))
-        if not headOn or not feetOn or headP.Z <= 0 then continue end
-
-        local e = espCache[pl]
-        if not e then e = CriarESP(); espCache[pl] = e end
-        vivos[pl] = true
-        local altura = math.abs(headP.Y - feetP.Y) * 1.1
-        local largura = altura * 0.65
-        local x = headP.X - largura / 2
-        local y = headP.Y
-
-        e.box.Visible = C.EspBox
-        if C.EspBox then
-            e.box.Size = Vector2.new(largura, altura)
-            e.box.Position = Vector2.new(x, y)
-            e.box.Color = corAtual
-        end
-
-        e.line.Visible = C.EspLinha
-        if C.EspLinha then
-            local fX, fY, tX, tY
-            if C.EspLinhaEstilo == "Topo" then fX = Camera.ViewportSize.X / 2; fY = 0; tX = headP.X; tY = y
-            elseif C.EspLinhaEstilo == "Meio" then fX = Camera.ViewportSize.X / 2; fY = Camera.ViewportSize.Y / 2; tX = headP.X; tY = y + altura / 2
-            elseif C.EspLinhaEstilo == "Cima" then fX = headP.X; fY = y - 15; tX = headP.X; tY = y end
-            e.line.From = Vector2.new(fX, fY); e.line.To = Vector2.new(tX, tY)
-            e.line.Color = corAtual
-        end
-
-        e.snap.Visible = C.EspSnapLine
-        if C.EspSnapLine then
-            e.snap.From = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-            e.snap.To = Vector2.new(headP.X, y + altura / 2)
-            e.snap.Color = corAtual
-        end
-
-        e.hBg.Visible = C.EspHatbar; e.h.Visible = C.EspHatbar
-        if C.EspHatbar then
-            local pct = math.clamp(hum.Health / hum.MaxHealth, 0, 1)
-            local barH = altura * pct
-            local bx = x - 6
-            e.hBg.Size = Vector2.new(3, altura); e.hBg.Position = Vector2.new(bx, y)
-            e.hBg.Color = Color3.fromRGB(40,40,40)
-            e.h.Size = Vector2.new(3, barH); e.h.Position = Vector2.new(bx, y + (altura - barH))
-            e.h.Color = Color3.fromRGB(0,255,0)
-        end
-
-        e.nome.Visible = C.EspNome
-        if C.EspNome then
-            e.nome.Position = Vector2.new(headP.X, y - 18); e.nome.Text = pl.Name
-            e.nome.Color = corAtual
-        end
-
-        e.dist.Visible = C.EspDist
-        if C.EspDist then
-            local d = 0
-            if LP.Character and LP.Character:FindFirstChild("HumanoidRootPart") then
-                d = math.floor((LP.Character.HumanoidRootPart.Position - hrp.Position).Magnitude)
+local Pages = {}
+local function CreateNavBtn(text, yPos, pageName)
+    local bg = Instance.new("Frame")
+    bg.Size = UDim2.new(1, -10, 0, 26)
+    bg.Position = UDim2.new(0, 5, 0, yPos)
+    bg.BackgroundColor3 = CorFundo
+    bg.Parent = Sidebar
+    bg.ZIndex = 13
+    Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 4)
+    
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, 0, 1, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = CorTexto
+    lbl.Font = FonteBold
+    lbl.TextSize = 9
+    lbl.Parent = bg
+    lbl.ZIndex = 14
+    
+    local click = Instance.new("TextButton")
+    click.Size = UDim2.new(1, 0, 1, 0)
+    click.BackgroundTransparency = 1
+    click.Text = ""
+    click.Parent = bg
+    click.ZIndex = 15
+    
+    click.MouseButton1Click:Connect(function()
+        for _, child in ipairs(Sidebar:GetChildren()) do
+            if child:IsA("Frame") and child:FindFirstChild("TextLabel") then
+                child.BackgroundColor3 = CorFundo
+                child.TextLabel.TextColor3 = CorTexto
             end
-            e.dist.Position = Vector2.new(headP.X, y + altura + 4)
-            e.dist.Text = d .. "m"; e.dist.Color = corAtual
         end
+        bg.BackgroundColor3 = CorVermelho
+        lbl.TextColor3 = Color3.new(1,1,1)
+        for _, p in pairs(Pages) do p.Visible = false end
+        if Pages[pageName] then Pages[pageName].Visible = true end
+    end)
+    return bg
+end
 
-        local bl = ch:FindFirstChild("UpperTorso") and R15Bones or R6Bones
-        for i, sk in ipairs(e.skel) do
-            if C.EspEsqueleto and bl[i] then
-                local p1 = ch:FindFirstChild(bl[i][1]); local p2 = ch:FindFirstChild(bl[i][2])
-                if p1 and p2 then
-                    local v1, o1 = Camera:WorldToViewportPoint(p1.Position)
-                    local v2, o2 = Camera:WorldToViewportPoint(p2.Position)
-                    if o1 and o2 and v1.Z > 0 and v2.Z > 0 then
-                        sk.From = Vector2.new(v1.X, v1.Y); sk.To = Vector2.new(v2.X, v2.Y)
-                        sk.Color = corAtual; sk.Visible = true
-                    else sk.Visible = false end
-                else sk.Visible = false end
-            else sk.Visible = false end
+-- ÁREA DE CONTEÚDO (ONDE FICAM AS OPÇÕES)
+local ContentArea = Instance.new("Frame")
+ContentArea.Size = UDim2.new(1, -90, 1, -10)
+ContentArea.Position = UDim2.new(0, 85, 0, 5)
+ContentArea.BackgroundTransparency = 1
+ContentArea.Parent = ContentWrapper
+ContentArea.ZIndex = 12
+
+local function CreatePage(name)
+    local p = Instance.new("Frame")
+    p.Size = UDim2.new(1, 0, 1, 0)
+    p.BackgroundTransparency = 1
+    p.Visible = false
+    p.Parent = ContentArea
+    p.ZIndex = 13
+    Pages[name] = p
+    return p
+end
+local PageAim = CreatePage("Aimbot")
+local PageESP = CreatePage("ESP")
+local PageEnt = CreatePage("Entidades")
+local PageConfig = CreatePage("Config")
+
+-- ==================== COMPONENTES ====================
+local function CreateColumn(parent, xPos, width, titleText)
+    local col = Instance.new("Frame")
+    col.Size = UDim2.new(0, width, 1, 0)
+    col.Position = UDim2.new(0, xPos, 0, 0)
+    col.BackgroundColor3 = CorPainel
+    col.Parent = parent
+    col.ZIndex = 14
+    Instance.new("UICorner", col).CornerRadius = UDim.new(0, 6)
+    
+    local header = Instance.new("TextLabel")
+    header.Size = UDim2.new(1, 0, 0, 18)
+    header.BackgroundTransparency = 1
+    header.Text = titleText
+    header.TextColor3 = CorVermelhoVivo
+    header.Font = FonteBold
+    header.TextSize = 9
+    header.TextXAlignment = Enum.TextXAlignment.Left
+    header.Position = UDim2.new(0, 8, 0, 3)
+    header.Parent = col
+    header.ZIndex = 15
+    
+    local scroll = Instance.new("ScrollingFrame")
+    scroll.Size = UDim2.new(1, -8, 1, -22)
+    scroll.Position = UDim2.new(0, 4, 0, 20)
+    scroll.BackgroundTransparency = 1
+    scroll.ScrollBarThickness = 2
+    scroll.ScrollBarImageColor3 = CorVermelho
+    scroll.Parent = col
+    scroll.ZIndex = 15
+    
+    return scroll
+end
+
+local function CreateCheck(parent, text, yPos, default, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -8, 0, 20)
+    frame.Position = UDim2.new(0, 4, 0, yPos)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    frame.ZIndex = 16
+    
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.8, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = CorTexto
+    label.Font = Fonte
+    label.TextSize = 9
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = frame
+    label.ZIndex = 17
+    
+    local box = Instance.new("Frame")
+    box.Size = UDim2.new(0, 14, 0, 14)
+    box.Position = UDim2.new(1, -20, 0.5, -7)
+    box.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    box.Parent = frame
+    box.ZIndex = 17
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 3)
+    
+    local check = Instance.new("TextLabel")
+    check.Size = UDim2.new(1, 0, 1, 0)
+    check.BackgroundTransparency = 1
+    check.Text = "✓"
+    check.TextColor3 = Color3.new(1,1,1)
+    check.Font = FonteBold
+    check.TextSize = 9
+    check.Visible = default or false
+    check.Parent = box
+    check.ZIndex = 18
+    
+    if default then box.BackgroundColor3 = CorVerde end
+    
+    local click = Instance.new("TextButton")
+    click.Size = UDim2.new(1, 0, 1, 0)
+    click.BackgroundTransparency = 1
+    click.Text = ""
+    click.Parent = frame
+    click.ZIndex = 19
+    
+    local state = default or false
+    click.MouseButton1Click:Connect(function()
+        state = not state
+        check.Visible = state
+        box.BackgroundColor3 = state and CorVerde or Color3.fromRGB(60, 60, 60)
+        callback(state)
+    end)
+end
+
+local function CreateDropdown(parent, text, options, yPos, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -8, 0, 20)
+    frame.Position = UDim2.new(0, 4, 0, yPos)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    frame.ZIndex = 16
+    
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0.5, 0, 1, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = CorTexto
+    lbl.Font = Fonte
+    lbl.TextSize = 9
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = frame
+    lbl.ZIndex = 17
+    
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0, 60, 0, 16)
+    btn.Position = UDim2.new(1, -65, 0.5, -8)
+    btn.BackgroundColor3 = CorFundo
+    btn.Text = options[1] .. " ▼"
+    btn.TextColor3 = CorTexto
+    btn.Font = Fonte
+    btn.TextSize = 8
+    btn.Parent = frame
+    btn.ZIndex = 17
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 3)
+    
+    local idx = 1
+    btn.MouseButton1Click:Connect(function()
+        idx = idx + 1
+        if idx > #options then idx = 1 end
+        btn.Text = options[idx] .. " ▼"
+        callback(options[idx])
+    end)
+end
+
+local function CreateSlider(parent, text, min, max, default, yPos, callback)
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(1, -8, 0, 28)
+    frame.Position = UDim2.new(0, 4, 0, yPos)
+    frame.BackgroundTransparency = 1
+    frame.Parent = parent
+    frame.ZIndex = 16
+    
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0.6, 0, 0, 12)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = text
+    lbl.TextColor3 = CorTexto
+    lbl.Font = Fonte
+    lbl.TextSize = 9
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = frame
+    lbl.ZIndex = 17
+    
+    local val = Instance.new("TextLabel")
+    val.Size = UDim2.new(0.3, 0, 0, 12)
+    val.Position = UDim2.new(0.7, 0, 0, 0)
+    val.BackgroundTransparency = 1
+    val.Text = tostring(default)
+    val.TextColor3 = CorVermelhoVivo
+    val.Font = Fonte
+    val.TextSize = 9
+    val.TextXAlignment = Enum.TextXAlignment.Right
+    val.Parent = frame
+    val.ZIndex = 17
+    
+    local barBg = Instance.new("Frame")
+    barBg.Size = UDim2.new(1, 0, 0, 3)
+    barBg.Position = UDim2.new(0, 0, 0, 15)
+    barBg.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    barBg.Parent = frame
+    barBg.ZIndex = 17
+    Instance.new("UICorner", barBg).CornerRadius = UDim.new(1, 0)
+    
+    local fill = Instance.new("Frame")
+    fill.Size = UDim2.new((default - min)/(max - min), 0, 1, 0)
+    fill.BackgroundColor3 = CorVermelho
+    fill.Parent = barBg
+    fill.ZIndex = 18
+    Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+    
+    local dragging = false
+    barBg.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = true end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then dragging = false end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local pct = math.clamp((input.Position.X - barBg.AbsolutePosition.X)/barBg.AbsoluteSize.X, 0, 1)
+            fill.Size = UDim2.new(pct, 0, 1, 0)
+            local v = math.floor(min + (max-min)*pct)
+            val.Text = tostring(v)
+            callback(v)
         end
-    end
-    for pl, e in pairs(espCache) do
-        if not vivos[pl] then RemoverESP(e); espCache[pl] = nil end
-    end
-end)
+    end)
+end
 
-Players.PlayerRemoving:Connect(function(pl)
-    local e = espCache[pl]
-    if e then RemoverESP(e); espCache[pl] = nil end
+-- ==================== MONTAGEM DAS ABAS ====================
+-- ABA AIMBOT
+local AimCol1 = CreateColumn(PageAim, 0, 150, "Combate")
+CreateCheck(AimCol1, "Aimbot", 5, CFG.Aimbot, function(v) CFG.Aimbot = v end)
+CreateCheck(AimCol1, "Puxar Mira", 28, CFG.PuxarMira, function(v) CFG.PuxarMira = v end)
+CreateCheck(AimCol1, "Ignorar derrubados", 51, CFG.IgnorarDerrotados, function(v) CFG.IgnorarDerrotados = v end)
+CreateCheck(AimCol1, "Ignorar bots", 74, CFG.IgnorarBots, function(v) CFG.IgnorarBots = v end)
+CreateCheck(AimCol1, "No recoil", 97, CFG.NoRecoil, function(v) CFG.NoRecoil = v end)
+
+local AimCol2 = CreateColumn(PageAim, 155, 150, "Config. Combate")
+CreateDropdown(AimCol2, "Tipo", {"Rage", "Legit"}, 5, function(v) CFG.TipoAimbot = v end)
+CreateSlider(AimCol2, "Delay", 0, 5, 0.2, 25, function(v) CFG.DelayAimbot = v end)
+CreateDropdown(AimCol2, "Parte", {"Head", "Torso"}, 55, function(v) CFG.ParteAlvo = v end)
+CreateCheck(AimCol2, "Mostrar FOV", 75, CFG.MostrarFov, function(v) CFG.MostrarFov = v end)
+CreateSlider(AimCol2, "FOV", 50, 400, CFG.FovSize, 98, function(v) CFG.FovSize = v end)
+
+-- ABA ESP
+local EspCol1 = CreateColumn(PageESP, 0, 150, "ESP Jogadores")
+CreateCheck(EspCol1, "ESP Linha", 5, CFG.EspLinha, function(v) CFG.EspLinha = v end)
+CreateCheck(EspCol1, "ESP Caixa", 28, CFG.EspCaixa, function(v) CFG.EspCaixa = v end)
+CreateCheck(EspCol1, "ESP Vida", 51, CFG.EspVida, function(v) CFG.EspVida = v end)
+CreateCheck(EspCol1, "ESP Skeleton", 74, CFG.EspSkeleton, function(v) CFG.EspSkeleton = v end)
+CreateCheck(EspCol1, "ESP Nome", 97, CFG.EspNome, function(v) CFG.EspNome = v end)
+CreateCheck(EspCol1, "ESP Distância", 120, CFG.EspDistancia, function(v) CFG.EspDistancia = v end)
+CreateCheck(EspCol1, "ESP Arma", 143, CFG.EspArma, function(v) CFG.EspArma = v end)
+
+local EspCol2 = CreateColumn(PageESP, 155, 150, "Ajustes do ESP")
+CreateDropdown(EspCol2, "Vida", {"Esquerda", "Direita"}, 5, function(v) CFG.PosicaoVida = v end)
+CreateSlider(EspCol2, "Distância", 0, 500, 250, 25, function(v) CFG.DistanciaMax = v end)
+
+-- ABA ENTIDADES
+local EntCol1 = CreateColumn(PageEnt, 0, 150, "Movimentação")
+CreateCheck(EntCol1, "Spin Bot", 5, CFG.SpinBot, function(v) CFG.SpinBot = v end)
+CreateCheck(EntCol1, "TP Atrás", 28, CFG.TP_Atras, function(v) CFG.TP_Atras = v end)
+CreateCheck(EntCol1, "Noclip", 51, CFG.Noclip, function(v) CFG.Noclip = v end)
+CreateCheck(EntCol1, "TP Marcado", 74, CFG.TP_Marcado, function(v) CFG.TP_Marcado = v end)
+CreateCheck(EntCol1, "Piscar Vida", 97, CFG.PiscarVida, function(v) CFG.PiscarVida = v end)
+
+-- ABA CONFIG
+local CfgCol1 = CreateColumn(PageConfig, 0, 305, "Configuração")
+local saveBtn = Instance.new("TextButton")
+saveBtn.Size = UDim2.new(0, 100, 0, 20)
+saveBtn.Position = UDim2.new(0, 8, 0, 5)
+saveBtn.BackgroundColor3 = CorFundo
+saveBtn.Text = "Config Apostado"
+saveBtn.TextColor3 = CorTexto
+saveBtn.Font = FonteBold
+saveBtn.TextSize = 9
+saveBtn.Parent = CfgCol1
+saveBtn.ZIndex = 18
+Instance.new("UICorner", saveBtn).CornerRadius = UDim.new(0, 4)
+
+local keyLabel = Instance.new("TextLabel")
+keyLabel.Size = UDim2.new(1, 0, 0, 15)
+keyLabel.Position = UDim2.new(0, 8, 0, 30)
+keyLabel.BackgroundTransparency = 1
+keyLabel.Text = "Sua Key: dreaminternal_..."
+keyLabel.TextColor3 = CorTexto
+keyLabel.Font = Fonte
+keyLabel.TextSize = 8
+keyLabel.TextXAlignment = Enum.TextXAlignment.Left
+keyLabel.Parent = CfgCol1
+keyLabel.ZIndex = 18
+
+local tempoLabel = Instance.new("TextLabel")
+tempoLabel.Size = UDim2.new(1, 0, 0, 15)
+tempoLabel.Position = UDim2.new(0, 8, 0, 45)
+tempoLabel.BackgroundTransparency = 1
+tempoLabel.Text = "Tempo: 362 dias"
+tempoLabel.TextColor3 = CorTexto
+tempoLabel.Font = Fonte
+tempoLabel.TextSize = 8
+tempoLabel.TextXAlignment = Enum.TextXAlignment.Left
+tempoLabel.Parent = CfgCol1
+tempoLabel.ZIndex = 18
+
+-- INICIALIZA NAVEGAÇÃO
+CreateNavBtn("🎯 Aimbot", 10, "Aimbot")
+CreateNavBtn("👁️ ESP's", 40, "ESP")
+CreateNavBtn("📦 Ent.", 70, "Entidades")
+CreateNavBtn("⚙️ Config", 100, "Config")
+
+Sidebar:GetChildren()[5].BackgroundColor3 = CorVermelho
+Pages["Aimbot"].Visible = true
+
+-- ==================== LÓGICA DO TOGGLE (∆ / ▽) ====================
+local MenuAberto = true
+ToggleBtn.MouseButton1Click:Connect(function()
+    MenuAberto = not MenuAberto
+    if MenuAberto then
+        ContentWrapper.Visible = true
+        MainFrame.Size = UDim2.new(0, 420, 0, 280)
+        ToggleBtn.Text = "∆"
+    else
+        ContentWrapper.Visible = false
+        MainFrame.Size = UDim2.new(0, 160, 0, 55)
+        ToggleBtn.Text = "▽"
+    end
 end)
 
 -- ==================== CÍRCULO FOV ====================
-local fovCircle = Drawing.new("Circle")
-fovCircle.Thickness = 1; fovCircle.NumSides = 60; fovCircle.Filled = false
-fovCircle.Color = Color3.fromRGB(255,255,255); fovCircle.Visible = false
+local FovGui = Instance.new("Frame")
+FovGui.Name = "FovCircle"
+FovGui.Size = UDim2.new(0, CFG.FovSize * 2, 0, CFG.FovSize * 2)
+FovGui.Position = UDim2.new(0.5, -CFG.FovSize, 0.5, -CFG.FovSize)
+FovGui.BackgroundTransparency = 1
+FovGui.Visible = CFG.MostrarFov
+FovGui.Parent = ScreenGui
+FovGui.ZIndex = 5
+local FovStroke = Instance.new("UIStroke", FovGui)
+FovStroke.Color = Color3.fromRGB(255, 255, 255)
+FovStroke.Thickness = 1.5
+Instance.new("UICorner", FovGui).CornerRadius = UDim.new(1, 0)
 
 RunService.RenderStepped:Connect(function()
-    if not Camera then return end
-    if C.FovVisivel then
-        fovCircle.Visible = true
-        fovCircle.Position = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-        fovCircle.Radius = C.FovRadius
-        fovCircle.Color = C.RGB and CorRGB(hueEsp) or Color3.fromRGB(255,255,255)
-    else
-        fovCircle.Visible = false
+    FovGui.Visible = CFG.MostrarFov
+    if CFG.MostrarFov then
+        FovGui.Size = UDim2.new(0, CFG.FovSize * 2, 0, CFG.FovSize * 2)
+        FovGui.Position = UDim2.new(0.5, -CFG.FovSize, 0.5, -CFG.FovSize)
     end
 end)
 
--- ==================== PEGAR ALVO ====================
-local function PegarAlvo()
-    local melhor, menorDist = nil, math.huge
-    local centro = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    for _, pl in ipairs(Players:GetPlayers()) do
-        if pl == LP then continue end
-        local ch = pl.Character; if not ch then continue end
-        local ponto
-        if C.Alvo == "Head" then ponto = ch:FindFirstChild("Head")
-        elseif C.Alvo == "Torso" then ponto = ch:FindFirstChild("UpperTorso") or ch:FindFirstChild("Torso")
-        elseif C.Alvo == "Pescoço" then ponto = ch:FindFirstChild("Head") or ch:FindFirstChild("UpperTorso") end
-        local hum = ch:FindFirstChildOfClass("Humanoid")
-        if not (ponto and hum) or hum.Health <= 0 then continue end
-        local pos, on = Camera:WorldToViewportPoint(ponto.Position)
-        if not on or pos.Z <= 0 then continue end
-        local d = (Vector2.new(pos.X, pos.Y) - centro).Magnitude
-        if d < menorDist and d <= C.FovRadius then menorDist = d; melhor = ponto end
-    end
-    return melhor
-end
-
--- ==================== AIMBOT ====================
-RunService:BindToRenderStep("UrielAimbot", Enum.RenderPriority.Camera.Value + 1, function()
-    if not C.AimbotRage then return end
-    local alvo = PegarAlvo()
-    if not alvo then return end
-    Camera.CFrame = CFrame.new(Camera.CFrame.Position, alvo.Position)
-end)
-
--- ==================== HOLOGRAMA PLAYER ====================
-local holoCache = {}
-RunService.RenderStepped:Connect(function()
-    if not C.HologramaPlayer then
-        for _, obj in pairs(holoCache) do
-            if obj.h then pcall(function() obj.h:Destroy() end) end
-        end
-        holoCache = {}
-        return
-    end
-    for _, pl in ipairs(Players:GetPlayers()) do
-        if pl == LP then continue end
-        local ch = pl.Character; if not ch then continue end
-        if not holoCache[pl] then
-            local h = Instance.new("Highlight")
-            h.Name = "UrielHolo"; h.Adornee = ch
-            h.FillColor = C.CorHoloPlayer; h.OutlineColor = C.CorHoloPlayer
-            h.FillTransparency = 0.5; h.OutlineTransparency = 0
-            h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-            h.Parent = ch
-            holoCache[pl] = {h = h}
-        else
-            local obj = holoCache[pl]
-            if obj.h and obj.h.Parent then
-                obj.h.FillColor = C.CorHoloPlayer
-                obj.h.OutlineColor = C.CorHoloPlayer
-                obj.h.Adornee = ch
-            else holoCache[pl] = nil end
-        end
-    end
-end)
-
--- ==================== HOLOGRAMA ARMA ====================
-RunService.RenderStepped:Connect(function()
-    for _, pl in ipairs(Players:GetPlayers()) do
-        if pl == LP then continue end
-        local ch = pl.Character; if not ch then continue end
-        for _, item in ipairs(ch:GetChildren()) do
-            if item:IsA("Tool") then
-                local h = item:FindFirstChild("UrielArmaHolo")
-                if C.HologramaArma then
-                    if not h then
-                        h = Instance.new("Highlight")
-                        h.Name = "UrielArmaHolo"; h.Adornee = item
-                        h.FillTransparency = 0.3; h.OutlineTransparency = 0
-                        h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                        h.Parent = item
-                    end
-                    h.FillColor = C.CorHoloArma
-                    h.OutlineColor = C.CorHoloArma
-                else
-                    if h then h:Destroy() end
-                end
-            end
-        end
-    end
-end)
-
--- ==================== SPIN BOT ====================
-RunService.RenderStepped:Connect(function(dt)
-    if not C.SpinBot then return end
-    local ch = LP.Character; if not ch then return end
-    local hrp = ch:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(360 * C.SpinSpeed * dt), 0)
-end)
-
--- ==================== SPEED 2X ====================
-RunService.Heartbeat:Connect(function()
-    local ch = LP.Character; if not ch then return end
-    local hum = ch:FindFirstChildOfClass("Humanoid")
-    if not hum then return end
-    if C.Speed2X then hum.WalkSpeed = 100
-    else if hum.WalkSpeed == 100 then hum.WalkSpeed = 16 end end
-end)
-
--- ==================== TIRAR ANIMAÇÃO ====================
-local function PararAnim(char)
-    if not char then return end
-    local anim = char:FindFirstChildOfClass("Animator")
-    if anim then
-        for _, t in ipairs(anim:GetPlayingAnimationTracks()) do
-            pcall(function() t:Stop(0) end)
-        end
-    end
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        for _, t in ipairs(hum:GetPlayingAnimationTracks()) do
-            pcall(function() t:Stop(0) end)
-        end
-    end
-end
-
-RunService.Heartbeat:Connect(function()
-    if not C.TirarAnimacao then return end
-    for _, pl in ipairs(Players:GetPlayers()) do
-        if pl.Character then PararAnim(pl.Character) end
-    end
-end)
-
--- ==================== NOCLIP ====================
-RunService.Stepped:Connect(function()
-    if not C.NoClip then return end
-    local ch = LP.Character; if not ch then return end
-    for _, p in ipairs(ch:GetDescendants()) do
-        if p:IsA("BasePart") then p.CanCollide = false end
-    end
-end)
-
--- ==================== NOTIFICAÇÃO ====================
-WindUI:Notify({
-    Title = "🖥️ URIEL XITER EMULADOR",
-    Content = "Script carregado! Aperte K pra abrir/fechar.",
-    Duration = 5,
-})
+-- ==================== LÓGICA DO JOGO ====================
+local function IsInimigo(plr)
+    if plr == 
